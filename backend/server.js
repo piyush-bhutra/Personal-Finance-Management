@@ -22,4 +22,9 @@ app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+// Only listen if running directly (not imported as a module)
+if (require.main === module) {
+    app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+}
+
+module.exports = app;

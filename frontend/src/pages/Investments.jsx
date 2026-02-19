@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Badge } from '../components/ui/badge';
 import investmentService from '../features/investments/investmentService';
-import { Plus, Trash2, Edit2, TrendingUp, TrendingDown, RefreshCw, Zap, CalendarDays } from 'lucide-react';
+import { Plus, Trash2, Edit2, TrendingUp, TrendingDown, RefreshCw, Zap, CalendarDays, StopCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /* ─────── Helpers ─────── */
@@ -61,6 +61,11 @@ export default function InvestmentsPage() {
     const [fromDateOpen, setFromDateOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState(null); // { type: 'edit'|'delete', id, data? }
     const [fromDate, setFromDate] = useState(nowYM());
+
+    // Stop/Sell
+    const [stopOpen, setStopOpen] = useState(false);
+    const [stopTarget, setStopTarget] = useState(null);
+    const [stopData, setStopData] = useState({ stopDate: '', realizedValue: '' });
 
     /* ─── Fetch ─── */
     const getToken = () => JSON.parse(localStorage.getItem('user'))?.token;
@@ -165,7 +170,7 @@ export default function InvestmentsPage() {
         const token = getToken();
         if (!token) return;
         try {
-            await investmentService.deleteInvestment(id, token, fd);
+            await investmentService.deleteInvestment(token, id, fd);
             setInvestments((prev) => prev.filter((i) => i._id !== id));
         } catch (err) {
             console.error('Delete error:', err);
@@ -182,6 +187,29 @@ export default function InvestmentsPage() {
             setEditOpen(true);
         }
         setPendingAction(null);
+    };
+
+    /* ─── Stop/Sell Handlers ─── */
+    const handleStop = (inv) => {
+        setStopTarget(inv);
+        setStopData({
+            stopDate: new Date().toISOString().split('T')[0],
+            realizedValue: inv.currentValue || 0
+        });
+        setStopOpen(true);
+    };
+
+    const confirmStop = async () => {
+        const token = getToken();
+        if (!token) return;
+        try {
+            await investmentService.stopInvestment(token, stopTarget._id, stopData);
+            setStopOpen(false);
+            setStopTarget(null);
+            fetchInvestments();
+        } catch (err) {
+            console.error('Stop error:', err);
+        }
     };
 
     /* ─────────────────────── RENDER ─────────────────────── */
@@ -318,13 +346,14 @@ export default function InvestmentsPage() {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
                                         >
-                                            <Card className="border-border hover:shadow-sm transition-shadow">
+                                            <Card className={`border-border hover:shadow-sm transition-shadow ${inv.status === 'closed' ? 'opacity-75 bg-muted/30' : ''}`}>
                                                 <CardContent className="pt-5 pb-4">
                                                     <div className="flex items-start justify-between gap-4">
                                                         {/* Left info */}
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 flex-wrap">
                                                                 <p className="font-semibold truncate">{inv.assetName}</p>
+                                                                {inv.status === 'closed' && <Badge variant="secondary" className="bg-neutral-500/10 text-neutral-500 text-xs">Closed</Badge>}
                                                                 <Badge variant="secondary" className="text-xs shrink-0">{inv.type}</Badge>
                                                                 <Badge
                                                                     variant="outline"
@@ -354,6 +383,9 @@ export default function InvestmentsPage() {
                                                                     <span>{inv.expectedReturnRate}% p.a.</span>
                                                                 )}
                                                                 {inv.description && <span className="italic truncate max-w-[160px]">{inv.description}</span>}
+                                                                {inv.status === 'closed' && inv.stopDate && (
+                                                                    <span className="text-red-400">Stopped: {new Date(inv.stopDate).toLocaleDateString('en-IN')}</span>
+                                                                )}
                                                             </div>
                                                         </div>
 
@@ -361,7 +393,7 @@ export default function InvestmentsPage() {
                                                         <div className="text-right shrink-0">
                                                             <p className="text-xs text-muted-foreground">Invested</p>
                                                             <p className="font-bold">{fmt(inv.totalInvested)}</p>
-                                                            <p className="text-xs text-muted-foreground mt-1">Current</p>
+                                                            <p className="text-xs text-muted-foreground mt-1">{inv.status === 'closed' ? 'Realized' : 'Current'}</p>
                                                             <p className="font-semibold">{fmt(inv.currentValue)}</p>
                                                             <div className={`flex items-center justify-end gap-1 text-xs font-medium mt-1 ${isUp ? 'text-emerald-500' : 'text-red-500'}`}>
                                                                 {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -372,10 +404,18 @@ export default function InvestmentsPage() {
 
                                                     {/* Action buttons */}
                                                     <div className="flex justify-end gap-1 mt-3 pt-3 border-t border-border">
-                                                        <Button variant="ghost" size="sm" onClick={() => openEdit(inv)}
-                                                            className="text-muted-foreground hover:text-primary h-7 px-2 text-xs gap-1">
-                                                            <Edit2 size={12} /> Edit
-                                                        </Button>
+                                                        {inv.status !== 'closed' && (
+                                                            <Button variant="ghost" size="sm" onClick={() => openEdit(inv)}
+                                                                className="text-muted-foreground hover:text-primary h-7 px-2 text-xs gap-1">
+                                                                <Edit2 size={12} /> Edit
+                                                            </Button>
+                                                        )}
+                                                        {inv.status !== 'closed' && (
+                                                            <Button variant="ghost" size="sm" onClick={() => handleStop(inv)}
+                                                                className="text-muted-foreground hover:text-amber-500 h-7 px-2 text-xs gap-1">
+                                                                <StopCircle size={12} /> Stop/Sell
+                                                            </Button>
+                                                        )}
                                                         <Button variant="ghost" size="sm" onClick={() => handleDelete(inv)}
                                                             className="text-muted-foreground hover:text-destructive h-7 px-2 text-xs gap-1">
                                                             <Trash2 size={12} /> Delete
@@ -476,6 +516,31 @@ export default function InvestmentsPage() {
                         </div>
                         <Button type="submit" className="w-full mt-1">Save Changes</Button>
                     </form>
+                </DialogContent>
+            </Dialog>
+            {/* ── Stop Dialog ── */}
+            <Dialog open={stopOpen} onOpenChange={setStopOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Stop/Sell Investment</DialogTitle>
+                    </DialogHeader>
+                    <div className="text-sm text-muted-foreground mb-4">
+                        Stopping <strong>{stopTarget?.assetName}</strong> will calcuate realized value and stop further growth.
+                    </div>
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <Label>Stop Date</Label>
+                            <Input type="date" value={stopData.stopDate} onChange={(e) => setStopData({ ...stopData, stopDate: e.target.value })} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label>Realized Value (₹)</Label>
+                            <Input type="number" value={stopData.realizedValue} onChange={(e) => setStopData({ ...stopData, realizedValue: e.target.value })} />
+                            <p className="text-xs text-muted-foreground">
+                                Current calculated value was {fmt(stopTarget?.currentValue)}
+                            </p>
+                        </div>
+                        <Button className="w-full" onClick={confirmStop}>Confirm Stop/Sell</Button>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

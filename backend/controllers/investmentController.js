@@ -38,19 +38,33 @@ const compoundValue = (principal, annualRatePct, ageMonths) => {
 
 /** Compute summary fields for a plan given its active entries */
 const computePlanSummary = (plan, entries) => {
-    const now = new Date();
-    const nowMonthStart = startOfMonth(now);
     let totalInvested = 0;
     let currentValue = 0;
 
+    // Calculate total invested from active entries
     for (const entry of entries) {
         if (!entry.isActive) continue;
         totalInvested += entry.amount;
-        const entryMonth = startOfMonth(entry.date);
-        const diffMs = nowMonthStart - entryMonth;
-        const ageMonths = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44)));
-        currentValue += compoundValue(entry.amount, plan.expectedReturnRate, ageMonths);
+
+        // Only compute compound diff if plan is ACTIVE
+        if (plan.status === 'active') {
+            const now = new Date();
+            const nowMonthStart = startOfMonth(now);
+            const entryMonth = startOfMonth(entry.date);
+            const diffMs = nowMonthStart - entryMonth;
+            const ageMonths = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44)));
+            currentValue += compoundValue(entry.amount, plan.expectedReturnRate, ageMonths);
+        }
     }
+
+    // If closed, use the stored realized value
+    if (plan.status === 'closed' && plan.realizedValue !== undefined) {
+        currentValue = plan.realizedValue;
+    }
+
+    // If active plan but no entries (newly created), currentValue is 0 or just totalInvested?
+    // compoundValue returns principal if rate is 0 or age is 0.
+    // If we rely on loop, currentValue is correct for active plans (sum of compounded entries).
 
     const gain = currentValue - totalInvested;
     return { totalInvested, currentValue: Math.round(currentValue), gain: Math.round(gain) };
@@ -303,12 +317,56 @@ const deleteInvestment = asyncHandler(async (req, res) => {
         res.status(200).json({ id: req.params.id, message: 'Investment stopped from ' + fromDate });
 
     } else {
-        // One-time: hard delete
-        await InvestmentEntry.deleteMany({ plan: plan._id });
         await plan.deleteOne();
         res.status(200).json({ id: req.params.id, message: 'Investment deleted' });
     }
 });
+/* ─────────────────────────────────────────────────────────────
+   PUT /api/investments/:id/stop
+   Stops/Sells an investment.
+   Body: { stopDate, realizedValue }
+───────────────────────────────────────────────────────────── */
+const stopInvestment = asyncHandler(async (req, res) => {
+    const plan = await InvestmentPlan.findById(req.params.id);
+    if (!plan) { res.status(404); throw new Error('Investment not found'); }
+    if (!req.user) { res.status(401); throw new Error('Not authenticated'); }
+    if (plan.user.toString() !== req.user.id) { res.status(401); throw new Error('Not authorized'); }
+
+    const { stopDate, realizedValue } = req.body;
+    if (!stopDate || realizedValue === undefined) {
+        res.status(400);
+        throw new Error('Please provide stopDate and realizedValue');
+    }
+
+    // Close the plan
+    const updatedPlan = await InvestmentPlan.findByIdAndUpdate(
+        plan._id,
+        {
+            status: 'closed',
+            stopDate: new Date(stopDate),
+            realizedValue: Number(realizedValue)
+        },
+        { new: true }
+    );
+
+    // Prune future entries if recurring (entries after stop date)
+    if (plan.investmentMode === 'recurring') {
+        const cutoff = new Date(stopDate);
+        // We delete entries strictly AFTER the stop date's month?
+        // Usually if I stop on Feb 15, I keep Feb 1? Yes.
+        // Any entry with date > stopDate is future.
+        await InvestmentEntry.deleteMany({
+            plan: plan._id,
+            date: { $gt: cutoff }
+        });
+    }
+
+    const entries = await InvestmentEntry.find({ plan: plan._id, isActive: true }).sort({ date: 1 });
+    const summary = computePlanSummary(updatedPlan, entries);
+
+    res.status(200).json({ ...updatedPlan.toObject(), ...summary, entries });
+});
+
 
 module.exports = {
     getInvestments,
@@ -316,4 +374,5 @@ module.exports = {
     createInvestment,
     updateInvestment,
     deleteInvestment,
+    stopInvestment,
 };

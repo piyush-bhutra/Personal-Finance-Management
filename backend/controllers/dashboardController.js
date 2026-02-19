@@ -53,6 +53,13 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
     let realizedValue = 0;
 
     await Promise.all(inactivePlans.map(async (plan) => {
+        // If plan has an explicit realized value (stopped/sold), use it
+        if (plan.realizedValue !== undefined) {
+            realizedValue += plan.realizedValue;
+            return;
+        }
+
+        // Fallback for legacy stopped plans (sum of inactive entries)
         const entries = await InvestmentEntry.find({ plan: plan._id });
         for (const entry of entries) {
             const entryMonth = startOfMonth(entry.date);
@@ -137,6 +144,35 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
             mode: e.plan?.investmentMode
         }));
         allTransactions.push(...formattedInvestments);
+
+        // 2b. Fetch "Sold" events (Closed Plans)
+        const stopDateFilter = {};
+        if (from || to) {
+            stopDateFilter.stopDate = {};
+            if (from) stopDateFilter.stopDate.$gte = new Date(from);
+            if (to) stopDateFilter.stopDate.$lte = new Date(to);
+        }
+
+        const closedPlans = await InvestmentPlan.find({
+            user: req.user.id,
+            status: 'closed',
+            stopDate: { $ne: null },
+            ...stopDateFilter
+        }).lean();
+
+        const soldEvents = closedPlans.map(p => ({
+            id: p._id + '_sold',
+            type: 'investment',
+            originalDate: p.stopDate,
+            date: new Date(p.stopDate),
+            amount: Number(p.realizedValue || 0),
+            description: `Sold ${p.assetName}`,
+            category: 'Investment Return',
+            asset: p.type,
+            mode: 'sold'
+        }));
+
+        allTransactions.push(...soldEvents);
     }
 
     // 3. Sort

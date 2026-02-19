@@ -46,12 +46,17 @@ const updateInvestment = async (investmentId, investmentData, token) => {
  *   Only entries from that month forward are deactivated (history preserved).
  * For one-time: the entire plan and its entry are removed.
  */
-const deleteInvestment = async (investmentId, token, fromDate = null) => {
-    const config = {
-        ...authHeader(token),
-        ...(fromDate ? { data: { fromDate } } : {}),
-    };
-    const response = await axios.delete(API_URL + investmentId, config);
+const deleteInvestment = async (token, id, fromDate) => {
+    const config = authHeader(token);
+    const body = fromDate ? { data: { fromDate } } : {};
+    const response = await axios.delete(API_URL + id, { ...config, ...body });
+    return response.data;
+};
+
+const stopInvestment = async (token, id, data) => {
+    const config = authHeader(token);
+    // data: { stopDate, realizedValue }
+    const response = await axios.put(API_URL + id + '/stop', data, config);
     return response.data;
 };
 
@@ -61,6 +66,7 @@ const investmentService = {
     createInvestment,
     updateInvestment,
     deleteInvestment,
+    stopInvestment,
 };
 
 export default investmentService;

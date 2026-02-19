@@ -53,7 +53,18 @@ const investmentPlanSchema = mongoose.Schema(
         },
         isActive: {
             type: Boolean,
-            default: true, // false means fully deleted/stopped
+            default: true, // false means soft-deleted (trash)
+        },
+        status: {
+            type: String,
+            enum: ['active', 'closed'],
+            default: 'active',
+        },
+        stopDate: {
+            type: Date,
+        },
+        realizedValue: {
+            type: Number,
         },
     },
     { timestamps: true }

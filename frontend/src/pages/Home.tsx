@@ -1,5 +1,5 @@
-import { HeroSection } from "@/components/ui/hero-section";
-import Navbar from "@/components/Navbar";
+import { HeroSection } from "../components/ui/hero-section";
+import Navbar from "../components/Navbar";
 
 const Home = () => {
     return (

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/investments/';
+const API_URL = '/api/investments/';
 
 // Get user investments
 const getInvestments = async (token) => {

@@ -7,6 +7,7 @@ import { Button } from "./button";
 import { ArrowUpRight, CreditCard, DollarSign, Wallet, TrendingUp } from "lucide-react";
 import expenseService from "../../features/expenses/expenseService";
 import investmentService from "../../features/investments/investmentService";
+import { ExpenseChart, PortfolioChart } from "./analytics-charts";
 
 export function HeroSection() {
     const [expenses, setExpenses] = useState<any[]>([]);
@@ -169,29 +170,7 @@ export function HeroSection() {
                                                 </CardDescription>
                                             </CardHeader>
                                             <CardContent>
-                                                {/* Simple Visual Representation */}
-                                                <div className="space-y-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm font-medium">Stocks</span>
-                                                        <div className="h-2 w-1/2 rounded-full bg-blue-500"></div>
-                                                        <span className="text-sm text-muted-foreground">50%</span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm font-medium">Crypto</span>
-                                                        <div className="h-2 w-1/4 rounded-full bg-orange-500"></div>
-                                                        <span className="text-sm text-muted-foreground">25%</span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm font-medium">Cash</span>
-                                                        <div className="h-2 w-1/6 rounded-full bg-green-500"></div>
-                                                        <span className="text-sm text-muted-foreground">15%</span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-sm font-medium">Real Estate</span>
-                                                        <div className="h-2 w-[10%] rounded-full bg-purple-500"></div>
-                                                        <span className="text-sm text-muted-foreground">10%</span>
-                                                    </div>
-                                                </div>
+                                                <PortfolioChart investments={investments} />
                                             </CardContent>
                                         </Card>
                                     </div>
@@ -200,11 +179,11 @@ export function HeroSection() {
                                 <TabsContent value="analytics" className="space-y-4">
                                     <Card>
                                         <CardHeader>
-                                            <CardTitle>Analytics</CardTitle>
-                                            <CardDescription>Detailed expense analysis coming soon.</CardDescription>
+                                            <CardTitle>Expense Breakdown</CardTitle>
+                                            <CardDescription>Where your money is going.</CardDescription>
                                         </CardHeader>
-                                        <CardContent className="h-[200px] flex items-center justify-center text-muted-foreground">
-                                            Chart placeholder
+                                        <CardContent className="h-[350px]">
+                                            <ExpenseChart expenses={expenses} />
                                         </CardContent>
                                     </Card>
                                 </TabsContent>
@@ -222,7 +201,7 @@ export function HeroSection() {
                     </div>
 
                 </div>
-            </TracingBeam>
-        </div>
+            </TracingBeam >
+        </div >
     );
 }

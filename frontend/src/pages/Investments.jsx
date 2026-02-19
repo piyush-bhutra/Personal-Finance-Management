@@ -14,9 +14,10 @@ export default function InvestmentsPage() {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [currentInvestment, setCurrentInvestment] = useState(null);
     const [formData, setFormData] = useState({
-        category: '',
+        type: 'Stock', // Default type
+        assetName: '',
         amount: '',
-        date: '',
+        startDate: '',
         description: ''
     });
 
@@ -52,7 +53,7 @@ export default function InvestmentsPage() {
                 } else {
                     await investmentService.createInvestment(formData, user.token);
                 }
-                setFormData({ category: '', amount: '', date: '', description: '' });
+                setFormData({ type: 'Stock', assetName: '', amount: '', startDate: '', description: '' });
                 fetchInvestments();
             } catch (error) {
                 console.error("Error saving investment:", error);
@@ -63,9 +64,10 @@ export default function InvestmentsPage() {
     const handleEditClick = (investment) => {
         setCurrentInvestment(investment);
         setFormData({
-            category: investment.category,
+            type: investment.type || 'Stock',
+            assetName: investment.assetName,
             amount: investment.amount,
-            date: investment.date.split('T')[0],
+            startDate: investment.startDate ? investment.startDate.split('T')[0] : '',
             description: investment.description
         });
         setIsEditOpen(true);
@@ -110,16 +112,35 @@ export default function InvestmentsPage() {
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="category">Type/Category</Label>
-                                        <Input id="category" placeholder="e.g. Stocks, Crypto" value={formData.category} onChange={handleChange} required />
+                                        <Label htmlFor="type">Type</Label>
+                                        <select
+                                            id="type"
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                            value={formData.type}
+                                            onChange={handleChange}
+                                            required
+                                        >
+                                            <option value="Stock">Stock</option>
+                                            <option value="Crypto">Crypto</option>
+                                            <option value="Real Estate">Real Estate</option>
+                                            <option value="Bond">Bond</option>
+                                            <option value="Mutual Fund">Mutual Fund</option>
+                                            <option value="Fixed Deposit">Fixed Deposit</option>
+                                            <option value="Gold">Gold</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="assetName">Asset Name</Label>
+                                        <Input id="assetName" placeholder="e.g. Apple Inc, Bitcoin" value={formData.assetName} onChange={handleChange} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="amount">Amount (₹)</Label>
                                         <Input id="amount" type="number" placeholder="0.00" value={formData.amount} onChange={handleChange} required />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="date">Date</Label>
-                                        <Input id="date" type="date" value={formData.date} onChange={handleChange} required />
+                                        <Label htmlFor="startDate">Start Date</Label>
+                                        <Input id="startDate" type="date" value={formData.startDate} onChange={handleChange} required />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="description">Description (Optional)</Label>
@@ -156,8 +177,11 @@ export default function InvestmentsPage() {
                                                 className="flex items-center justify-between p-4 border rounded-lg bg-card/50 hover:bg-muted/50 transition-colors"
                                             >
                                                 <div>
-                                                    <p className="font-semibold">{inv.category}</p>
-                                                    <p className="text-sm text-muted-foreground">{new Date(inv.date).toLocaleDateString()} - {inv.description}</p>
+                                                    <p className="font-semibold">{inv.assetName}</p>
+                                                    <div className="text-sm text-muted-foreground flex gap-2">
+                                                        <span className="bg-secondary px-1.5 py-0.5 rounded text-xs">{inv.type}</span>
+                                                        <span>{new Date(inv.startDate).toLocaleDateString()}</span>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <span className="font-bold text-green-500">+₹{inv.amount}</span>
@@ -187,16 +211,35 @@ export default function InvestmentsPage() {
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="category">Category</Label>
-                                <Input id="category" placeholder="e.g. Stocks" value={formData.category} onChange={handleChange} required />
+                                <Label htmlFor="type">Type</Label>
+                                <select
+                                    id="type"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    value={formData.type}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="Stock">Stock</option>
+                                    <option value="Crypto">Crypto</option>
+                                    <option value="Real Estate">Real Estate</option>
+                                    <option value="Bond">Bond</option>
+                                    <option value="Mutual Fund">Mutual Fund</option>
+                                    <option value="Fixed Deposit">Fixed Deposit</option>
+                                    <option value="Gold">Gold</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="assetName">Asset Name</Label>
+                                <Input id="assetName" placeholder="e.g. Apple Inc, Bitcoin" value={formData.assetName} onChange={handleChange} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="amount">Amount (₹)</Label>
                                 <Input id="amount" type="number" placeholder="0.00" value={formData.amount} onChange={handleChange} required />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="date">Date</Label>
-                                <Input id="date" type="date" value={formData.date} onChange={handleChange} required />
+                                <Label htmlFor="startDate">Start Date</Label>
+                                <Input id="startDate" type="date" value={formData.startDate} onChange={handleChange} required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="description">Description (Optional)</Label>

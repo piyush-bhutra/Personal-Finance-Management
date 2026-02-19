@@ -10,7 +10,7 @@ const investmentSchema = mongoose.Schema(
         type: {
             type: String,
             required: [true, 'Please add investment type'],
-            enum: ['Lump Sum', 'SIP'],
+            enum: ['Stock', 'Crypto', 'Real Estate', 'Bond', 'Mutual Fund', 'Fixed Deposit', 'Gold', 'Other', 'Lump Sum', 'SIP'],
         },
         assetName: {
             type: String,
@@ -24,25 +24,27 @@ const investmentSchema = mongoose.Schema(
             type: Date,
             required: [true, 'Please add start date'],
         },
+        description: {
+            type: String,
+            required: false,
+        },
         expectedReturnRate: {
             type: Number,
-            required: [true, 'Please add expected annual return rate (%)'],
+            required: false,
         },
         duration: {
             type: Number,
-            required: [true, 'Please add duration'],
+            required: false,
         },
         durationUnit: {
             type: String,
-            required: [true, 'Please select duration unit'],
+            required: false,
             enum: ['Years', 'Months'],
         },
         sipFrequency: {
             type: String,
             enum: ['Monthly', 'Quarterly', 'Yearly'],
-            required: function () {
-                return this.type === 'SIP';
-            },
+            required: false,
         },
         currentValue: {
             type: Number,

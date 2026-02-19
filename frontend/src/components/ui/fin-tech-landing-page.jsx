@@ -1,6 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, ArrowUpRight, CheckCircle2, PieChart, TrendingUp, Wallet, Users } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
+import { MagicCard } from "./magic-card";
+import { useTheme } from "@/context/ThemeContext";
 
 /** FinanceFlow Landing Page */
 
@@ -81,6 +84,8 @@ const FeatureItem = ({ icon, title, description }) => (
 );
 
 export default function MoneyflowLandingPage() {
+    const { isDark } = useTheme();
+    const magicColor = isDark ? "#2d2d2d" : "#D9D9D955";
     return (
         <div className="min-h-screen w-full bg-background text-foreground font-sans">
 
@@ -97,14 +102,15 @@ export default function MoneyflowLandingPage() {
                         <a key={item} href={`/${item.toLowerCase()}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">{item}</a>
                     ))}
                 </div>
-                <div className="hidden gap-2 md:flex">
+                <div className="hidden gap-3 md:flex items-center">
+                    <ThemeToggle />
                     <a href="/login" className="rounded-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors inline-block text-center pt-2.5 font-medium">Login</a>
                     <SoftButton onClick={() => window.location.href = '/register'} className="bg-primary text-primary-foreground hover:opacity-90">Sign Up</SoftButton>
                 </div>
             </nav>
 
             {/* Hero area */}
-            <div className="mx-auto grid w-full max-w-[1180px] grid-cols-1 gap-12 px-4 pb-14 pt-10 md:grid-cols-2 md:px-0">
+            <div className="relative z-10 mx-auto grid w-full max-w-[1180px] grid-cols-1 gap-12 px-4 pb-14 pt-10 md:grid-cols-2 md:px-0">
                 {/* Left: headline */}
                 <div className="flex flex-col justify-center space-y-8 pr-2">
                     <div>
@@ -146,27 +152,30 @@ export default function MoneyflowLandingPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="relative col-span-1 overflow-hidden rounded-2xl bg-card border border-border p-6 shadow-sm hover:shadow-md transition-shadow"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
-
-                        <div className="relative flex h-full flex-col justify-between" style={{ minHeight: "200px" }}>
-                            <div className="flex items-center gap-3">
-                                <div className="rounded-full bg-primary/10 p-2 text-primary">
-                                    <ShieldCheck className="h-5 w-5" />
+                        <MagicCard
+                            className="relative overflow-hidden rounded-2xl border-border p-6 shadow-sm"
+                            gradientColor={magicColor}
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl pointer-events-none"></div>
+                            <div className="relative flex h-full flex-col justify-between" style={{ minHeight: "200px" }}>
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-full bg-primary/10 p-2 text-primary">
+                                        <ShieldCheck className="h-5 w-5" />
+                                    </div>
+                                    <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Private & Secure</span>
                                 </div>
-                                <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Private & Secure</span>
+                                <div className="mt-auto text-xl font-medium leading-snug text-card-foreground">
+                                    Your financial data
+                                    <br /> stays private.
+                                </div>
+                                <motion.div
+                                    className="absolute right-6 top-6 h-12 w-12 rounded-full bg-primary/5"
+                                    animate={{ boxShadow: ["0 0 0 0 rgba(var(--primary), 0.1)", "0 0 0 16px rgba(var(--primary), 0)"] }}
+                                    transition={{ duration: 2.5, repeat: Infinity }}
+                                />
                             </div>
-                            <div className="mt-auto text-xl font-medium leading-snug text-card-foreground">
-                                Your financial data
-                                <br /> stays private.
-                            </div>
-                            <motion.div
-                                className="absolute right-6 top-6 h-12 w-12 rounded-full bg-primary/5"
-                                animate={{ boxShadow: ["0 0 0 0 rgba(var(--primary), 0.1)", "0 0 0 16px rgba(var(--primary), 0)"] }}
-                                transition={{ duration: 2.5, repeat: Infinity }}
-                            />
-                        </div>
+                        </MagicCard>
                     </motion.div>
 
                     {/* Budget card */}
@@ -174,18 +183,23 @@ export default function MoneyflowLandingPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="relative col-span-1 overflow-hidden rounded-2xl bg-primary p-6 text-primary-foreground shadow-lg"
                     >
-                        <div className="pointer-events-none absolute -right-8 -top-10 opacity-20">
-                            <Planet />
-                        </div>
-                        <div className="relative h-full flex flex-col justify-between" style={{ minHeight: "200px" }}>
-                            <div className="text-sm text-primary-foreground/90 font-medium">Smart Budgeting</div>
-                            <div className="text-xl font-medium leading-snug">
-                                Track every penny
-                                <br /> automatically.
+                        <MagicCard
+                            className="relative overflow-hidden rounded-2xl bg-primary border-primary/30 p-6 text-primary-foreground shadow-lg"
+                            gradientColor={isDark ? "#ffffff18" : "#00000018"}
+                            gradientOpacity={0.5}
+                        >
+                            <div className="pointer-events-none absolute -right-8 -top-10 opacity-20">
+                                <Planet />
                             </div>
-                        </div>
+                            <div className="relative h-full flex flex-col justify-between" style={{ minHeight: "200px" }}>
+                                <div className="text-sm text-primary-foreground/90 font-medium">Smart Budgeting</div>
+                                <div className="text-xl font-medium leading-snug">
+                                    Track every penny
+                                    <br /> automatically.
+                                </div>
+                            </div>
+                        </MagicCard>
                     </motion.div>
 
                     {/* Growth card */}
@@ -193,15 +207,19 @@ export default function MoneyflowLandingPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="col-span-1 rounded-2xl bg-card border border-border p-6 text-card-foreground shadow-sm hover:shadow-md transition-shadow"
                     >
-                        <div className="text-sm text-muted-foreground font-medium">Monthly Savings</div>
-                        <div className="mt-2 text-3xl font-bold tracking-tight">₹24,500 <span className="text-sm font-medium text-muted-foreground align-middle">INR</span></div>
-                        <div className="mt-1 text-xs text-chart-2 font-medium flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3" />
-                            12% vs last month
-                        </div>
-                        <MiniBars />
+                        <MagicCard
+                            className="rounded-2xl border-border p-6 shadow-sm"
+                            gradientColor={magicColor}
+                        >
+                            <div className="text-sm text-muted-foreground font-medium">Monthly Savings</div>
+                            <div className="mt-2 text-3xl font-bold tracking-tight">₹24,500 <span className="text-sm font-medium text-muted-foreground align-middle">INR</span></div>
+                            <div className="mt-1 text-xs text-chart-2 font-medium flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3" />
+                                12% vs last month
+                            </div>
+                            <MiniBars />
+                        </MagicCard>
                     </motion.div>
 
                     {/* Feature Highlight Card (New) */}
@@ -209,13 +227,18 @@ export default function MoneyflowLandingPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="col-span-1 rounded-2xl bg-secondary/30 border border-border p-6 flex flex-col justify-center items-center text-center"
                     >
-                        <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center shadow-sm mb-3 text-2xl">
-                            🚀
-                        </div>
-                        <h3 className="font-semibold text-foreground">Fast & Simple</h3>
-                        <p className="text-sm text-muted-foreground mt-2">Log expenses in seconds.</p>
+                        <MagicCard
+                            className="rounded-2xl border-border p-6 flex flex-col justify-center items-center text-center"
+                            gradientColor={magicColor}
+                            style={{ minHeight: "200px" }}
+                        >
+                            <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center shadow-sm mb-3 text-2xl">
+                                🚀
+                            </div>
+                            <h3 className="font-semibold text-foreground">Fast & Simple</h3>
+                            <p className="text-sm text-muted-foreground mt-2">Log expenses in seconds.</p>
+                        </MagicCard>
                     </motion.div>
                 </div>
             </div>
@@ -276,20 +299,6 @@ export default function MoneyflowLandingPage() {
                 </div>
             </section>
 
-            <footer className="mx-auto w-full max-w-[1180px] px-4 py-12 text-center text-xs text-muted-foreground md:px-0 border-t border-border bg-background">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                    <div className="flex items-center gap-2">
-                        <PieChart className="w-5 h-5 text-primary" />
-                        <span className="text-lg font-semibold text-foreground">FinanceFlow</span>
-                    </div>
-                    <div className="flex gap-8">
-                        <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-                        <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
-                        <a href="/support" className="hover:text-foreground transition-colors">Contact Support</a>
-                    </div>
-                </div>
-                <p>© {new Date().getFullYear()} FinanceFlow, Inc. All rights reserved.</p>
-            </footer>
         </div>
     );
 }

@@ -68,7 +68,10 @@ export function PortfolioChart({ investments }: { investments: any[] }) {
         investments.forEach((inv) => {
             const type = inv.type || 'Other';
             const current = typeMap.get(type) || 0;
-            typeMap.set(type, current + Number(inv.amount));
+            // New schema: totalInvested for all plan types (computed by backend)
+            // Fallback to amount for one-time plans that may not have totalInvested yet
+            const value = Number(inv.totalInvested ?? inv.amount ?? 0);
+            typeMap.set(type, current + value);
         });
 
         return Array.from(typeMap.entries()).map(([name, value]) => ({
@@ -95,7 +98,7 @@ export function PortfolioChart({ investments }: { investments: any[] }) {
                     paddingAngle={5}
                     dataKey="value"
                 >
-                    {data.map((entry, index) => (
+                    {data.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                 </Pie>

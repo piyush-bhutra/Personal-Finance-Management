@@ -4,16 +4,25 @@ import { TracingBeam } from "./tracing-beam";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { Button } from "./button";
-import { ArrowUpRight, CreditCard, DollarSign, Wallet, TrendingUp } from "lucide-react";
+import { ArrowUpRight, CreditCard, IndianRupee, Plus } from "lucide-react";
 import expenseService from "../../features/expenses/expenseService";
 import investmentService from "../../features/investments/investmentService";
+import dashboardService from "../../features/dashboard/dashboardService";
 import { ExpenseChart, PortfolioChart } from "./analytics-charts";
+import { useNavigate } from "react-router-dom";
 
 export function HeroSection() {
+    const navigate = useNavigate();
     const [expenses, setExpenses] = useState<any[]>([]);
     const [investments, setInvestments] = useState<any[]>([]);
-    const [totalExpenses, setTotalExpenses] = useState(0);
-    const [totalInvestments, setTotalInvestments] = useState(0);
+    const [dashboardData, setDashboardData] = useState({
+        netWorth: 0,
+        totalActiveInvestments: 0,
+        totalRealizedInvestments: 0,
+        totalExpenses: 0,
+        activePlanCount: 0
+    });
+    const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -22,17 +31,17 @@ export function HeroSection() {
                 const user = JSON.parse(userStr);
                 if (user && user.token) {
                     try {
-                        const expenseData = await expenseService.getExpenses(user.token);
-                        const investmentData = await investmentService.getInvestments(user.token);
+                        const [expenseData, investmentData, summary, transactions] = await Promise.all([
+                            expenseService.getExpenses(user.token),
+                            investmentService.getInvestments(user.token),
+                            dashboardService.getDashboardSummary(user.token),
+                            dashboardService.getRecentTransactions(user.token, { limit: 5 }),
+                        ]);
 
                         setExpenses(expenseData);
                         setInvestments(investmentData);
-
-                        const totalExp = expenseData.reduce((acc: number, curr: any) => acc + (Number(curr.amount) || 0), 0);
-                        const totalInv = investmentData.reduce((acc: number, curr: any) => acc + (Number(curr.amount) || 0), 0);
-
-                        setTotalExpenses(totalExp);
-                        setTotalInvestments(totalInv);
+                        setDashboardData(summary);
+                        setRecentTransactions(transactions);
                     } catch (error) {
                         console.error("Error fetching data:", error);
                     }
@@ -43,7 +52,7 @@ export function HeroSection() {
         fetchData();
     }, []);
 
-    const totalNetWorth = 45000 + totalInvestments - totalExpenses; // Placeholder base + calc
+
 
     return (
         <div className="relative w-full overflow-hidden bg-background">
@@ -81,12 +90,12 @@ export function HeroSection() {
                                                 <CardTitle className="text-sm font-medium">
                                                     Total Net Worth
                                                 </CardTitle>
-                                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                                <IndianRupee className="h-4 w-4 text-muted-foreground" />
                                             </CardHeader>
                                             <CardContent>
-                                                <div className="text-2xl font-bold">${totalNetWorth.toLocaleString()}</div>
+                                                <div className="text-2xl font-bold">₹{dashboardData.netWorth.toLocaleString('en-IN')}</div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    +20.1% from last month
+                                                    Active Investments + Realized − Expenses
                                                 </p>
                                             </CardContent>
                                             <BorderBeam size={100} duration={10} delay={0} borderWidth={1.5} colorFrom="#10b981" colorTo="#3b82f6" />
@@ -99,10 +108,15 @@ export function HeroSection() {
                                                 <CreditCard className="h-4 w-4 text-muted-foreground" />
                                             </CardHeader>
                                             <CardContent>
-                                                <div className="text-2xl font-bold">₹{totalExpenses.toLocaleString('en-IN')}</div>
-                                                <p className="text-xs text-muted-foreground">
-                                                    +4.5% from last month
+                                                <div className="text-2xl font-bold">₹{dashboardData.totalExpenses.toLocaleString('en-IN')}</div>
+                                                <p className="text-xs text-muted-foreground mb-1">
+                                                    {expenses.length > 0 ? `${expenses.length} transaction${expenses.length !== 1 ? 's' : ''} recorded` : "No expenses logged yet"}
                                                 </p>
+                                                {expenses.length === 0 && (
+                                                    <Button variant="outline" size="sm" className="h-6 text-xs w-full mt-1" onClick={() => navigate('/expenses')}>
+                                                        <Plus className="mr-1 h-3 w-3" /> Add Expense
+                                                    </Button>
+                                                )}
                                             </CardContent>
                                         </Card>
 
@@ -110,13 +124,20 @@ export function HeroSection() {
                                         <Card>
                                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                                 <CardTitle className="text-sm font-medium">Total Investments</CardTitle>
-                                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                                <IndianRupee className="h-4 w-4 text-muted-foreground" />
                                             </CardHeader>
                                             <CardContent>
-                                                <div className="text-2xl font-bold">₹{totalInvestments.toLocaleString('en-IN')}</div>
-                                                <p className="text-xs text-muted-foreground">
-                                                    +12.5% from last month
+                                                <div className="text-2xl font-bold">₹{dashboardData.totalActiveInvestments.toLocaleString('en-IN')}</div>
+                                                <p className="text-xs text-muted-foreground mb-1">
+                                                    {dashboardData.activePlanCount > 0
+                                                        ? `${dashboardData.activePlanCount} active plan${dashboardData.activePlanCount !== 1 ? 's' : ''}`
+                                                        : 'No active investments'}
                                                 </p>
+                                                {dashboardData.activePlanCount === 0 && (
+                                                    <Button variant="outline" size="sm" className="h-6 text-xs w-full mt-1" onClick={() => navigate('/investments')}>
+                                                        <Plus className="mr-1 h-3 w-3" /> Add Investment
+                                                    </Button>
+                                                )}
                                             </CardContent>
                                         </Card>
 
@@ -129,9 +150,9 @@ export function HeroSection() {
                                                 <CreditCard className="h-4 w-4 text-muted-foreground" />
                                             </CardHeader>
                                             <CardContent>
-                                                <div className="text-2xl font-bold">+3</div>
+                                                <div className="text-2xl font-bold">{dashboardData.activePlanCount}</div>
                                                 <p className="text-xs text-muted-foreground">
-                                                    No issues reported
+                                                    {dashboardData.activePlanCount > 0 ? 'Portfolio active' : 'No portfolio entries yet'}
                                                 </p>
                                             </CardContent>
                                         </Card>
@@ -139,25 +160,41 @@ export function HeroSection() {
 
                                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                                         <Card className="col-span-4 transition-all hover:shadow-md">
-                                            <CardHeader>
-                                                <CardTitle>Recent Transactions</CardTitle>
-                                                <CardDescription>
-                                                    You made {expenses.length} transactions this month.
-                                                </CardDescription>
+                                            <CardHeader className="flex flex-row items-center justify-between">
+                                                <div>
+                                                    <CardTitle>Recent Activity</CardTitle>
+                                                    <CardDescription>
+                                                        Your latest 5 financial transactions.
+                                                    </CardDescription>
+                                                </div>
+                                                <Button variant="ghost" size="sm" onClick={() => navigate('/transactions')}>
+                                                    View All <ArrowUpRight className="ml-1 h-4 w-4" />
+                                                </Button>
                                             </CardHeader>
                                             <CardContent>
                                                 <div className="space-y-8">
-                                                    {expenses.slice(0, 5).map((expense: any, i) => (
+                                                    {recentTransactions.map((item, i) => (
                                                         <div key={i} className="flex items-center">
                                                             <div className="ml-4 space-y-1">
-                                                                <p className="text-sm font-medium leading-none">{expense.description || expense.category}</p>
-                                                                <p className="text-sm text-muted-foreground">{new Date(expense.date).toLocaleDateString()}</p>
+                                                                <p className="text-sm font-medium leading-none">{item.description}</p>
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    {new Date(item.date).toLocaleDateString()}
+                                                                    {item.type === 'investment' && <span className="ml-2 text-xs bg-secondary px-1 py-0.5 rounded">Inv</span>}
+                                                                </p>
                                                             </div>
-                                                            <div className="ml-auto font-medium text-red-500">-₹{expense.amount}</div>
+                                                            <div className={`ml-auto font-medium ${item.type === 'expense' ? 'text-red-500' : 'text-emerald-500'}`}>
+                                                                {item.type === 'expense' ? '-' : '+'}₹{item.amount.toLocaleString('en-IN')}
+                                                            </div>
                                                         </div>
                                                     ))}
-                                                    {expenses.length === 0 && (
-                                                        <p className="text-sm text-muted-foreground">No recent transactions.</p>
+                                                    {recentTransactions.length === 0 && (
+                                                        <div className="text-center py-4">
+                                                            <p className="text-sm text-muted-foreground mb-4">No recent activity.</p>
+                                                            <div className="flex gap-2 justify-center">
+                                                                <Button variant="outline" size="sm" onClick={() => navigate('/expenses')}>Add Expense</Button>
+                                                                <Button variant="outline" size="sm" onClick={() => navigate('/investments')}>Add Investment</Button>
+                                                            </div>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </CardContent>

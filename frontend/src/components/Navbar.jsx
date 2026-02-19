@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, LogOut, Menu, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { ThemeToggle } from './ui/theme-toggle';
 
 const Navbar = ({ variant = 'public' }) => {
     const navigate = useNavigate();
@@ -51,6 +52,7 @@ const Navbar = ({ variant = 'public' }) => {
                 </div>
 
                 <div className="hidden md:flex items-center gap-4">
+                    <ThemeToggle />
                     {variant === 'auth' ? (
                         <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
                             <LogOut className="h-4 w-4" />
@@ -104,6 +106,10 @@ const Navbar = ({ variant = 'public' }) => {
                                             </div>
                                         </>
                                     )}
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-sm text-muted-foreground">Theme</span>
+                                        <ThemeToggle />
+                                    </div>
                                 </div>
                             </div>
                         </SheetContent>

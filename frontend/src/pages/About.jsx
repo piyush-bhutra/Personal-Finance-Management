@@ -1,21 +1,9 @@
-import React from 'react';
-import { PieChart } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 export default function AboutPage() {
     return (
         <div className="min-h-screen bg-background font-sans">
-            <nav className="mx-auto flex w-full max-w-[1180px] items-center justify-between px-4 py-6 md:px-0 border-b border-border">
-                <a href="/" className="flex items-center gap-2">
-                    <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground shadow">
-                        <PieChart className="h-4 w-4" />
-                    </div>
-                    <span className="text-lg font-semibold tracking-tight text-foreground">FinanceFlow</span>
-                </a>
-                <div className="flex gap-4">
-                    <a href="/login" className="text-sm font-medium hover:underline">Login</a>
-                    <a href="/register" className="text-sm font-medium hover:underline">Sign Up</a>
-                </div>
-            </nav>
+            <Navbar />
 
             <main className="mx-auto max-w-[800px] px-4 py-16">
                 <h1 className="text-4xl font-bold tracking-tight mb-6">About FinanceFlow</h1>

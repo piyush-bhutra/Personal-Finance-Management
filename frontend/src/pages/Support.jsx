@@ -2,23 +2,13 @@ import React from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { PieChart, Mail, Phone } from 'lucide-react';
+import { Mail, Phone } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 export default function SupportPage() {
     return (
         <div className="min-h-screen bg-background font-sans flex flex-col">
-            <nav className="w-full max-w-[1180px] mx-auto px-4 py-6 flex items-center justify-between border-b border-border">
-                <a href="/" className="flex items-center gap-2">
-                    <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground shadow">
-                        <PieChart className="h-4 w-4" />
-                    </div>
-                    <span className="text-lg font-semibold tracking-tight text-foreground">FinanceFlow</span>
-                </a>
-                <div className="flex gap-4">
-                    <a href="/login" className="text-sm font-medium hover:underline">Login</a>
-                    <a href="/register" className="text-sm font-medium hover:underline">Sign Up</a>
-                </div>
-            </nav>
+            <Navbar />
 
             <main className="flex-1 w-full max-w-[1180px] mx-auto px-4 py-12 md:py-20 grid md:grid-cols-2 gap-12">
                 <div>

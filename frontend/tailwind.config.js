@@ -72,6 +72,14 @@ export default {
                 "slide-to-top": "slide-to-top 3s linear infinite",
                 "spin-around": "spin-around calc(var(--speed) * 2) infinite linear",
                 "shine": "shine var(--duration) infinite linear",
+                "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
+            },
+            keyframes: {
+                "border-beam": {
+                    "100%": {
+                        "offset-distance": "100%",
+                    },
+                },
             },
             // We can define keyframes here too to make them truly utility-first, 
             // but since they are in global CSS, it's also fine. 

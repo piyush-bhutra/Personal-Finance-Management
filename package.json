@@ -1,0 +1,23 @@
+{
+  "name": "01_finance-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && npm run dev",
+    "dev": "npm run frontend"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piyush-bhutra/Personal-Finance-Management.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/piyush-bhutra/Personal-Finance-Management/issues"
+  },
+  "homepage": "https://github.com/piyush-bhutra/Personal-Finance-Management#readme",
+  "description": ""
+}

@@ -40,11 +40,8 @@ const updateExpense = asyncHandler(async (req, res) => {
         throw new Error('Expense not found');
     }
 
-    // Check for user
-    if (!req.user) {
-        res.status(401);
-        throw new Error('User not found');
-    }
+    // Check for user (req.user is guaranteed by protect middleware)
+
 
     // Make sure the logged in user matches the expense user
     if (expense.user.toString() !== req.user.id) {
@@ -74,11 +71,8 @@ const deleteExpense = asyncHandler(async (req, res) => {
         throw new Error('Expense not found');
     }
 
-    // Check for user
-    if (!req.user) {
-        res.status(401);
-        throw new Error('User not found');
-    }
+    // Check for user (req.user is guaranteed by protect middleware)
+
 
     // Make sure the logged in user matches the expense user
     if (expense.user.toString() !== req.user.id) {

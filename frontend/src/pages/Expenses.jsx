@@ -25,14 +25,11 @@ export default function ExpensesPage() {
     }, []);
 
     const fetchExpenses = async () => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && user.token) {
-            try {
-                const data = await expenseService.getExpenses(user.token);
-                setExpenses(data);
-            } catch (error) {
-                console.error("Error fetching expenses:", error);
-            }
+        try {
+            const data = await expenseService.getExpenses();
+            setExpenses(data);
+        } catch (error) {
+            console.error("Error fetching expenses:", error);
         }
     };
 
@@ -42,21 +39,18 @@ export default function ExpensesPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && user.token) {
-            try {
-                if (currentExpense) {
-                    await expenseService.updateExpense(currentExpense._id, formData, user.token);
-                    setIsEditOpen(false);
-                    setCurrentExpense(null);
-                } else {
-                    await expenseService.createExpense(formData, user.token);
-                }
-                setFormData({ category: '', amount: '', date: '', description: '' });
-                fetchExpenses();
-            } catch (error) {
-                console.error("Error saving expense:", error);
+        try {
+            if (currentExpense) {
+                await expenseService.updateExpense(currentExpense._id, formData);
+                setIsEditOpen(false);
+                setCurrentExpense(null);
+            } else {
+                await expenseService.createExpense(formData);
             }
+            setFormData({ category: '', amount: '', date: '', description: '' });
+            fetchExpenses();
+        } catch (error) {
+            console.error("Error saving expense:", error);
         }
     };
 
@@ -72,14 +66,11 @@ export default function ExpensesPage() {
     };
 
     const handleDelete = async (id) => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && user.token) {
-            try {
-                await expenseService.deleteExpense(id, user.token);
-                setExpenses(expenses.filter(expense => expense._id !== id));
-            } catch (error) {
-                console.error("Error deleting expense:", error);
-            }
+        try {
+            await expenseService.deleteExpense(id);
+            setExpenses(expenses.filter(expense => expense._id !== id));
+        } catch (error) {
+            console.error("Error deleting expense:", error);
         }
     };
 

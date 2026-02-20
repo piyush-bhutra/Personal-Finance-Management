@@ -3,6 +3,16 @@ const bcrypt = require('bcryptjs');
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 
+// Helper to generate user response
+const generateUserResponse = (user) => {
+    return {
+        _id: user.id,
+        name: user.name,
+        email: user.email,
+        token: generateToken(user._id),
+    };
+};
+
 // @desc    Register new user
 // @route   POST /api/users
 // @access  Public
@@ -34,12 +44,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 
     if (user) {
-        res.status(201).json({
-            _id: user.id,
-            name: user.name,
-            email: user.email,
-            token: generateToken(user._id),
-        });
+        res.status(201).json(generateUserResponse(user));
     } else {
         res.status(400);
         throw new Error('Invalid user data');
@@ -56,12 +61,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await bcrypt.compare(password, user.password))) {
-        res.json({
-            _id: user.id,
-            name: user.name,
-            email: user.email,
-            token: generateToken(user._id),
-        });
+        res.json(generateUserResponse(user));
     } else {
         res.status(400);
         throw new Error('Invalid credentials');

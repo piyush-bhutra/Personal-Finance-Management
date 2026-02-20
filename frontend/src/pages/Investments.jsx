@@ -68,14 +68,10 @@ export default function InvestmentsPage() {
     const [stopData, setStopData] = useState({ stopDate: '', realizedValue: '' });
 
     /* ─── Fetch ─── */
-    const getToken = () => JSON.parse(localStorage.getItem('user'))?.token;
-
     const fetchInvestments = async () => {
-        const token = getToken();
-        if (!token) return;
         setLoading(true);
         try {
-            const data = await investmentService.getInvestments(token);
+            const data = await investmentService.getInvestments();
             setInvestments(data);
         } catch (err) {
             console.error('Fetch error:', err);
@@ -97,10 +93,8 @@ export default function InvestmentsPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const token = getToken();
-        if (!token) return;
         try {
-            await investmentService.createInvestment(formData, token);
+            await investmentService.createInvestment(formData);
             setFormData(mode === 'recurring' ? RECURRING_DEFAULTS : ONETIME_DEFAULTS);
             fetchInvestments();
         } catch (err) {
@@ -141,12 +135,10 @@ export default function InvestmentsPage() {
 
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-        const token = getToken();
-        if (!token) return;
         try {
             const payload = { ...editData };
             if (editTarget.investmentMode === 'recurring') payload.fromDate = fromDate;
-            await investmentService.updateInvestment(editTarget._id, payload, token);
+            await investmentService.updateInvestment(editTarget._id, payload);
             setEditOpen(false);
             setEditTarget(null);
             fetchInvestments();
@@ -167,10 +159,8 @@ export default function InvestmentsPage() {
     };
 
     const confirmDelete = async (id, fd) => {
-        const token = getToken();
-        if (!token) return;
         try {
-            await investmentService.deleteInvestment(token, id, fd);
+            await investmentService.deleteInvestment(id, fd);
             setInvestments((prev) => prev.filter((i) => i._id !== id));
         } catch (err) {
             console.error('Delete error:', err);
@@ -200,10 +190,8 @@ export default function InvestmentsPage() {
     };
 
     const confirmStop = async () => {
-        const token = getToken();
-        if (!token) return;
         try {
-            await investmentService.stopInvestment(token, stopTarget._id, stopData);
+            await investmentService.stopInvestment(stopTarget._id, stopData);
             setStopOpen(false);
             setStopTarget(null);
             fetchInvestments();

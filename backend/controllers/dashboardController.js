@@ -3,26 +3,7 @@ const InvestmentPlan = require('../models/InvestmentPlan');
 const InvestmentEntry = require('../models/InvestmentEntry');
 const Expense = require('../models/Expense');
 
-/* ─────────────────────────────────────────────────────────────
-   Helpers
-───────────────────────────────────────────────────────────── */
-
-/** Return the first day of a month given any date */
-const startOfMonth = (date) => {
-    const d = new Date(date);
-    return new Date(d.getFullYear(), d.getMonth(), 1);
-};
-
-/**
- * Compute the current value of an entry using compound monthly growth.
- * rate: annual % (e.g. 12 = 12%/year → 1% per month)
- * ageMonths: how many complete months since the entry date
- */
-const compoundValue = (principal, annualRatePct, ageMonths) => {
-    if (!annualRatePct || annualRatePct <= 0) return principal;
-    const monthlyRate = annualRatePct / 100 / 12;
-    return principal * Math.pow(1 + monthlyRate, ageMonths);
-};
+const { startOfMonth, compoundValue } = require('../utils/calc');
 
 /* ─────────────────────────────────────────────────────────────
    GET /api/dashboard/summary

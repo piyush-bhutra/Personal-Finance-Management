@@ -22,36 +22,32 @@ const TransactionsPage = () => {
     useEffect(() => {
         const fetchTransactions = async () => {
             setLoading(true);
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                try {
-                    // Calculate date range
-                    let fromDate = null;
-                    const now = new Date();
-                    if (filters.timeRange === '30d') {
-                        fromDate = new Date(now.setDate(now.getDate() - 30));
-                    } else if (filters.timeRange === '90d') {
-                        fromDate = new Date(now.setDate(now.getDate() - 90));
-                    } else if (filters.timeRange === 'year') {
-                        fromDate = new Date(now.setFullYear(now.getFullYear() - 1));
-                    }
-
-                    const params = {
-                        type: filters.type,
-                        sort: filters.sort,
-                        order: filters.order,
-                        limit: filters.limit,
-                        ...(fromDate && { from: fromDate.toISOString() })
-                    };
-
-                    const data = await dashboardService.getRecentTransactions(user.token, params);
-                    setTransactions(data);
-                } catch (error) {
-                    console.error("Failed to fetch transactions", error);
-                } finally {
-                    setLoading(false);
+            try {
+                // Calculate date range
+                let fromDate = null;
+                const now = new Date();
+                if (filters.timeRange === '30d') {
+                    fromDate = new Date(now.setDate(now.getDate() - 30));
+                } else if (filters.timeRange === '90d') {
+                    fromDate = new Date(now.setDate(now.getDate() - 90));
+                } else if (filters.timeRange === 'year') {
+                    fromDate = new Date(now.setFullYear(now.getFullYear() - 1));
                 }
+
+                const params = {
+                    type: filters.type,
+                    sort: filters.sort,
+                    order: filters.order,
+                    limit: filters.limit,
+                    ...(fromDate && { from: fromDate.toISOString() })
+                };
+
+                const data = await dashboardService.getRecentTransactions(params);
+                setTransactions(data);
+            } catch (error) {
+                console.error("Failed to fetch transactions", error);
+            } finally {
+                setLoading(false);
             }
         };
 

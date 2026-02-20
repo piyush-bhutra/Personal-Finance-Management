@@ -1,62 +1,47 @@
-import axios from 'axios';
+import client from '../../api/client';
 
-const API_URL = (import.meta.env.VITE_API_BASE_URL || '') + '/api/investments/';
-
-const authHeader = (token) => ({
-    headers: { Authorization: `Bearer ${token}` },
-});
+const API_URL = '/investments/';
 
 /** Fetch all plans with computed totals */
-const getInvestments = async (token) => {
-    const response = await axios.get(API_URL, authHeader(token));
+const getInvestments = async () => {
+    const response = await client.get(API_URL);
     return response.data;
 };
 
 /** Fetch aggregate summary for dashboard */
-const getInvestmentSummary = async (token) => {
-    const response = await axios.get(API_URL + 'summary', authHeader(token));
+const getInvestmentSummary = async () => {
+    const response = await client.get(API_URL + 'summary');
     return response.data;
 };
 
 /**
  * Create a new investment plan.
- * investmentData should include:
- *   investmentMode: 'recurring' | 'one-time'
- *   For recurring: assetName, type, monthlyAmount, startDate, expectedReturnRate?, description?
- *   For one-time:  assetName, type, amount, date, expectedReturnRate?, description?
  */
-const createInvestment = async (investmentData, token) => {
-    const response = await axios.post(API_URL, investmentData, authHeader(token));
+const createInvestment = async (investmentData) => {
+    const response = await client.post(API_URL, investmentData);
     return response.data;
 };
 
 /**
  * Update an investment plan.
- * For recurring: include fromDate (YYYY-MM) to indicate which month the change applies from.
- * All entries from that month forward are replaced; earlier entries are preserved.
  */
-const updateInvestment = async (investmentId, investmentData, token) => {
-    const response = await axios.put(API_URL + investmentId, investmentData, authHeader(token));
+const updateInvestment = async (investmentId, investmentData) => {
+    const response = await client.put(API_URL + investmentId, investmentData);
     return response.data;
 };
 
 /**
  * Delete an investment plan.
- * For recurring: include fromDate (YYYY-MM) in the body.
- *   Only entries from that month forward are deactivated (history preserved).
- * For one-time: the entire plan and its entry are removed.
  */
-const deleteInvestment = async (token, id, fromDate) => {
-    const config = authHeader(token);
+const deleteInvestment = async (id, fromDate) => {
     const body = fromDate ? { data: { fromDate } } : {};
-    const response = await axios.delete(API_URL + id, { ...config, ...body });
+    const response = await client.delete(API_URL + id, body);
     return response.data;
 };
 
-const stopInvestment = async (token, id, data) => {
-    const config = authHeader(token);
+const stopInvestment = async (id, data) => {
     // data: { stopDate, realizedValue }
-    const response = await axios.put(API_URL + id + '/stop', data, config);
+    const response = await client.put(API_URL + id + '/stop', data);
     return response.data;
 };
 

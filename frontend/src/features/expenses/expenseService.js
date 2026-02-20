@@ -1,57 +1,28 @@
-import axios from 'axios';
+import client from '../../api/client';
 
-const API_URL = (import.meta.env.VITE_API_BASE_URL || '') + '/api/expenses/';
+const API_URL = '/expenses/';
 
 // Get user expenses
-const getExpenses = async (token) => {
-    const config = {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    };
-
-    const response = await axios.get(API_URL, config);
-
+const getExpenses = async () => {
+    const response = await client.get(API_URL);
     return response.data;
 };
 
 // Create new expense
-const createExpense = async (expenseData, token) => {
-    const config = {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    };
-
-    const response = await axios.post(API_URL, expenseData, config);
-
+const createExpense = async (expenseData) => {
+    const response = await client.post(API_URL, expenseData);
     return response.data;
 };
 
 // Update user expense
-const updateExpense = async (expenseId, expenseData, token) => {
-    const config = {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    };
-
-    const response = await axios.put(API_URL + expenseId, expenseData, config);
-
+const updateExpense = async (expenseId, expenseData) => {
+    const response = await client.put(API_URL + expenseId, expenseData);
     return response.data;
-
 };
 
 // Delete user expense
-const deleteExpense = async (expenseId, token) => {
-    const config = {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    };
-
-    const response = await axios.delete(API_URL + expenseId, config);
-
+const deleteExpense = async (expenseId) => {
+    const response = await client.delete(API_URL + expenseId);
     return response.data;
 };
 

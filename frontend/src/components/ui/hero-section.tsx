@@ -26,26 +26,20 @@ export function HeroSection() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                if (user && user.token) {
-                    try {
-                        const [expenseData, investmentData, summary, transactions] = await Promise.all([
-                            expenseService.getExpenses(user.token),
-                            investmentService.getInvestments(user.token),
-                            dashboardService.getDashboardSummary(user.token),
-                            dashboardService.getRecentTransactions(user.token, { limit: 5 }),
-                        ]);
+            try {
+                const [expenseData, investmentData, summary, transactions] = await Promise.all([
+                    expenseService.getExpenses(),
+                    investmentService.getInvestments(),
+                    dashboardService.getDashboardSummary(),
+                    dashboardService.getRecentTransactions({ limit: 5 }),
+                ]);
 
-                        setExpenses(expenseData);
-                        setInvestments(investmentData);
-                        setDashboardData(summary);
-                        setRecentTransactions(transactions);
-                    } catch (error) {
-                        console.error("Error fetching data:", error);
-                    }
-                }
+                setExpenses(expenseData);
+                setInvestments(investmentData);
+                setDashboardData(summary);
+                setRecentTransactions(transactions);
+            } catch (error) {
+                console.error("Error fetching data:", error);
             }
         };
 

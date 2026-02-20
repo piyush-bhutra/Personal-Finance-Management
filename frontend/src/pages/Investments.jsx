@@ -5,8 +5,10 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../components/ui/dialog";
+import { Download } from "lucide-react";
 import investmentService from "../features/investments/investmentService";
 import { formatCurrency, formatDate, toISODate } from "../lib/format";
+import { exportToCSV } from "../utils/exportToCSV";
 
 const ASSET_TYPES = ["Stock", "Crypto", "Real Estate", "Bond", "Mutual Fund", "Fixed Deposit", "Gold", "SIP", "Other"];
 const MAX_AMOUNT = 100000000;
@@ -47,8 +49,9 @@ export default function InvestmentsPage() {
     try {
       const data = await investmentService.getInvestments();
       setInvestments(data || []);
-    } catch {
-      setApiError("Unable to load investments right now. Please try again.");
+    } catch (error) {
+      const msg = error.response?.data?.message || "Unable to load investments right now. Please try again.";
+      setApiError(msg);
     } finally {
       setLoading(false);
     }
@@ -99,8 +102,9 @@ export default function InvestmentsPage() {
       await investmentService.createInvestment(payload);
       setFormData(mode === "recurring" ? recurringDefaults : oneTimeDefaults);
       await loadInvestments();
-    } catch {
-      setApiError("Could not save investment. Please check values and try again.");
+    } catch (error) {
+      const msg = error.response?.data?.message || "Could not save investment. Please check values and try again.";
+      setApiError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -138,8 +142,9 @@ export default function InvestmentsPage() {
       setEditOpen(false);
       setEditTarget(null);
       await loadInvestments();
-    } catch {
-      setApiError("Could not update investment right now. Please try again.");
+    } catch (error) {
+      const msg = error.response?.data?.message || "Could not update investment right now. Please try again.";
+      setApiError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -151,8 +156,9 @@ export default function InvestmentsPage() {
     try {
       await investmentService.deleteInvestment(id, fd);
       setInvestments((prev) => prev.filter((x) => x._id !== id));
-    } catch {
-      setApiError("Could not delete investment right now. Please try again.");
+    } catch (error) {
+      const msg = error.response?.data?.message || "Could not delete investment right now. Please try again.";
+      setApiError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -176,18 +182,41 @@ export default function InvestmentsPage() {
       setStopOpen(false);
       setStopTarget(null);
       await loadInvestments();
-    } catch {
-      setApiError("Could not stop/sell investment right now. Please try again.");
+    } catch (error) {
+      const msg = error.response?.data?.message || "Could not stop/sell investment right now. Please try again.";
+      setApiError(msg);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleExport = () => {
+    const exportData = investments.map(inv => ({
+      Name: inv.assetName,
+      Category: inv.type,
+      Mode: inv.investmentMode === 'recurring' ? 'Recurring (SIP)' : 'One-Time',
+      Monthly_Amount: inv.investmentMode === 'recurring' ? inv.monthlyAmount : 'N/A',
+      Principal_Invested: inv.totalInvested,
+      Current_Value: inv.currentValue,
+      Gain: inv.gain,
+      Expected_Return_Pct: inv.expectedReturnRate || 0,
+      Start_Date: inv.investmentMode === 'recurring' ? toISODate(inv.startDate) : toISODate(inv.date),
+      Status: inv.status,
+      Closed_Date: inv.status === 'closed' ? toISODate(inv.stopDate) : 'N/A'
+    }));
+    exportToCSV(exportData, 'My_Investments');
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar variant="auth" />
       <div className="container mx-auto py-10 px-4 max-w-6xl space-y-6">
-        <h1 className="text-3xl font-bold">Investments</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Investments</h1>
+          <Button variant="outline" onClick={handleExport} disabled={investments.length === 0}>
+            <Download size={16} className="mr-2" /> Export CSV
+          </Button>
+        </div>
         {apiError && <Card><CardContent className="py-4 text-sm text-red-500">{apiError}</CardContent></Card>}
 
         <div className="grid md:grid-cols-3 gap-8">

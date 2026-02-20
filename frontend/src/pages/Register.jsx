@@ -56,7 +56,8 @@ export default function RegisterPage() {
             navigate('/home');
         } catch (error) {
             console.error(error);
-            setError('Registration failed. Please try again.');
+            const msg = error.response?.data?.message || 'Registration failed. Please try again.';
+            setError(msg);
         } finally {
             setLoading(false);
         }

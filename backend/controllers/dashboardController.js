@@ -1,14 +1,15 @@
 const asyncHandler = require('express-async-handler');
 const InvestmentPlan = require('../models/InvestmentPlan');
 const InvestmentEntry = require('../models/InvestmentEntry');
-const Expense = require('../models/Expense');
+const ExpensePlan = require('../models/ExpensePlan');
+const ExpenseEntry = require('../models/ExpenseEntry');
 
 const { startOfMonth, compoundValue } = require('../utils/calc');
 
 /* ─────────────────────────────────────────────────────────────
    GET /api/dashboard/summary
    Returns:
-     - netWorth = (Active Inv Value + Realized Inactive Inv Value) - Total Expenses
+     - netWorth = (Active Inv Value + Realized Inactive Inv Value)
      - totalActiveInvestments = Active Inv Value only
      - totalExpenses = Sum of all expenses
      - activePlanCount
@@ -30,7 +31,7 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
 
     // 2. Calculate Realized Value from Inactive (Stopped) Plans
     // Assumption: Value is realized at the principal amount + growth up to today
-    const inactivePlans = await InvestmentPlan.find({ user: req.user.id, isActive: false });
+    const inactivePlans = await InvestmentPlan.find({ user: req.user.id, status: 'closed' });
     let realizedValue = 0;
 
     await Promise.all(inactivePlans.map(async (plan) => {
@@ -51,11 +52,11 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
     }));
 
     // 3. Calculate Total Expenses
-    const expenses = await Expense.find({ user: req.user.id });
+    const expenses = await ExpenseEntry.find({ user: req.user.id, isActive: true });
     const totalExpenses = expenses.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
-    // 4. Net Worth
-    const netWorth = (activeValue + realizedValue) - totalExpenses;
+    // 4. Net Worth (Total Assets)
+    const netWorth = (activeValue + realizedValue);
 
     res.status(200).json({
         netWorth: Math.round(netWorth),
@@ -91,16 +92,19 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
 
     // 1. Fetch Expenses
     if (type === 'all' || type === 'expense') {
-        const expenses = await Expense.find({ user: req.user.id, ...dateFilter }).lean();
-        const formattedExpenses = expenses.map(e => ({
+        const expenseEntries = await ExpenseEntry.find({ user: req.user.id, isActive: true, ...dateFilter })
+            .populate('plan', 'category description expenseMode')
+            .lean();
+        const formattedExpenses = expenseEntries.map(e => ({
             id: e._id,
             type: 'expense',
             originalDate: e.date,
             date: new Date(e.date),
             amount: Number(e.amount),
-            description: e.description || e.category,
-            category: e.category,
-            asset: null
+            description: e.plan?.description || e.plan?.category || 'Expense',
+            category: e.plan?.category,
+            asset: null,
+            mode: e.plan?.expenseMode
         }));
         allTransactions.push(...formattedExpenses);
     }

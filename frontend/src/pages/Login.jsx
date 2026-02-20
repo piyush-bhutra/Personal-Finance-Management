@@ -38,7 +38,8 @@ export default function LoginPage() {
             navigate('/home');
         } catch (error) {
             console.error(error);
-            setError('Login failed. Please check your credentials.');
+            const msg = error.response?.data?.message || 'Login failed. Please check your credentials.';
+            setError(msg);
         } finally {
             setLoading(false);
         }

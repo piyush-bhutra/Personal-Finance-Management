@@ -21,8 +21,14 @@ const updateExpense = async (expenseId, expenseData) => {
 };
 
 // Delete user expense
-const deleteExpense = async (expenseId) => {
-    const response = await client.delete(API_URL + expenseId);
+const deleteExpense = async (expenseId, fromDate) => {
+    const response = await client.delete(API_URL + expenseId, { data: { fromDate } });
+    return response.data;
+};
+
+// Stop recurring expense
+const stopExpense = async (expenseId, stopData) => {
+    const response = await client.put(API_URL + expenseId + '/stop', stopData);
     return response.data;
 };
 
@@ -31,6 +37,7 @@ const expenseService = {
     createExpense,
     updateExpense,
     deleteExpense,
+    stopExpense,
 };
 
 export default expenseService;

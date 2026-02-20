@@ -10,6 +10,7 @@ import investmentService from "@/features/investments/investmentService";
 import dashboardService from "@/features/dashboard/dashboardService";
 import { ExpenseChart, PortfolioChart } from "./analytics-charts";
 import { useNavigate } from "react-router-dom";
+import { formatCurrency, formatDate } from "@/lib/format";
 
 export function HeroSection() {
     const navigate = useNavigate();
@@ -23,29 +24,116 @@ export function HeroSection() {
         activePlanCount: 0
     });
     const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
-            try {
-                const [expenseData, investmentData, summary, transactions] = await Promise.all([
-                    expenseService.getExpenses(),
-                    investmentService.getInvestments(),
-                    dashboardService.getDashboardSummary(),
-                    dashboardService.getRecentTransactions({ limit: 5 }),
-                ]);
+            setLoading(true);
+            setError("");
+            const [expenseRes, investmentRes, summaryRes, txRes] = await Promise.allSettled([
+                expenseService.getExpenses(),
+                investmentService.getInvestments(),
+                dashboardService.getDashboardSummary(),
+                dashboardService.getRecentTransactions({ limit: 5 }),
+            ]);
 
-                setExpenses(expenseData);
-                setInvestments(investmentData);
-                setDashboardData(summary);
-                setRecentTransactions(transactions);
-            } catch (error) {
-                console.error("Error fetching data:", error);
+            let anySuccess = false;
+
+            if (expenseRes.status === "fulfilled") {
+                setExpenses(expenseRes.value || []);
+                anySuccess = true;
+            } else {
+                console.error("Expenses fetch failed:", expenseRes.reason);
+                setExpenses([]);
             }
+
+            if (investmentRes.status === "fulfilled") {
+                setInvestments(investmentRes.value || []);
+                anySuccess = true;
+            } else {
+                console.error("Investments fetch failed:", investmentRes.reason);
+                setInvestments([]);
+            }
+
+            if (summaryRes.status === "fulfilled") {
+                setDashboardData(summaryRes.value || {
+                    netWorth: 0,
+                    totalActiveInvestments: 0,
+                    totalRealizedInvestments: 0,
+                    totalExpenses: 0,
+                    activePlanCount: 0
+                });
+                anySuccess = true;
+            } else {
+                console.error("Dashboard summary fetch failed:", summaryRes.reason);
+                setDashboardData({
+                    netWorth: 0,
+                    totalActiveInvestments: 0,
+                    totalRealizedInvestments: 0,
+                    totalExpenses: 0,
+                    activePlanCount: 0
+                });
+            }
+
+            if (txRes.status === "fulfilled") {
+                setRecentTransactions(txRes.value || []);
+                anySuccess = true;
+            } else {
+                console.error("Recent transactions fetch failed:", txRes.reason);
+                setRecentTransactions([]);
+            }
+
+            if (!anySuccess) {
+                setError("Unable to load dashboard data right now.");
+            } else {
+                setError("");
+            }
+            setLoading(false);
         };
 
         fetchData();
     }, []);
 
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const monthlyExpenses = expenses
+        .filter((e) => {
+            const d = new Date(e.date);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        })
+        .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+    const monthlyRealizedIncome = recentTransactions
+        .filter((t) => {
+            const d = new Date(t.date);
+            return (
+                (t.mode === "sold" || t.category === "Investment Return") &&
+                d.getMonth() === currentMonth &&
+                d.getFullYear() === currentYear
+            );
+        })
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+    const monthlyNetSavings = monthlyRealizedIncome - monthlyExpenses;
+
+    const expenseByCategory = expenses
+        .filter((e) => {
+            const d = new Date(e.date);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        })
+        .reduce((acc: Record<string, number>, e) => {
+            const key = e.category || "Uncategorized";
+            acc[key] = (acc[key] || 0) + Number(e.amount || 0);
+            return acc;
+        }, {});
+
+    const topCategories = Object.entries(expenseByCategory)
+        .map(([category, amount]) => ({ category, amount }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 5);
 
 
     return (
@@ -87,7 +175,7 @@ export function HeroSection() {
                                                 <IndianRupee className="h-4 w-4 text-muted-foreground" />
                                             </CardHeader>
                                             <CardContent>
-                                                <div className="text-2xl font-bold">₹{dashboardData.netWorth.toLocaleString('en-IN')}</div>
+                                                <div className="text-2xl font-bold">{formatCurrency(dashboardData.netWorth)}</div>
                                                 <p className="text-xs text-muted-foreground">
                                                     Active Investments + Realized − Expenses
                                                 </p>
@@ -102,7 +190,7 @@ export function HeroSection() {
                                                 <CreditCard className="h-4 w-4 text-muted-foreground" />
                                             </CardHeader>
                                             <CardContent>
-                                                <div className="text-2xl font-bold">₹{dashboardData.totalExpenses.toLocaleString('en-IN')}</div>
+                                                <div className="text-2xl font-bold">{formatCurrency(dashboardData.totalExpenses)}</div>
                                                 <p className="text-xs text-muted-foreground mb-1">
                                                     {expenses.length > 0 ? `${expenses.length} transaction${expenses.length !== 1 ? 's' : ''} recorded` : "No expenses logged yet"}
                                                 </p>
@@ -121,7 +209,7 @@ export function HeroSection() {
                                                 <IndianRupee className="h-4 w-4 text-muted-foreground" />
                                             </CardHeader>
                                             <CardContent>
-                                                <div className="text-2xl font-bold">₹{dashboardData.totalActiveInvestments.toLocaleString('en-IN')}</div>
+                                                <div className="text-2xl font-bold">{formatCurrency(dashboardData.totalActiveInvestments)}</div>
                                                 <p className="text-xs text-muted-foreground mb-1">
                                                     {dashboardData.activePlanCount > 0
                                                         ? `${dashboardData.activePlanCount} active plan${dashboardData.activePlanCount !== 1 ? 's' : ''}`
@@ -167,21 +255,25 @@ export function HeroSection() {
                                             </CardHeader>
                                             <CardContent>
                                                 <div className="space-y-8">
-                                                    {recentTransactions.map((item, i) => (
+                                                    {loading ? (
+                                                        <div className="text-sm text-muted-foreground">Loading recent activity...</div>
+                                                    ) : error ? (
+                                                        <div className="text-sm text-red-500">{error}</div>
+                                                    ) : recentTransactions.map((item, i) => (
                                                         <div key={i} className="flex items-center">
                                                             <div className="ml-4 space-y-1">
                                                                 <p className="text-sm font-medium leading-none">{item.description}</p>
                                                                 <p className="text-sm text-muted-foreground">
-                                                                    {new Date(item.date).toLocaleDateString()}
+                                                                    {formatDate(item.date)}
                                                                     {item.type === 'investment' && <span className="ml-2 text-xs bg-secondary px-1 py-0.5 rounded">Inv</span>}
                                                                 </p>
                                                             </div>
                                                             <div className={`ml-auto font-medium ${item.type === 'expense' ? 'text-red-500' : 'text-emerald-500'}`}>
-                                                                {item.type === 'expense' ? '-' : '+'}₹{item.amount.toLocaleString('en-IN')}
+                                                                {item.type === 'expense' ? '-' : '+'}{formatCurrency(item.amount)}
                                                             </div>
                                                         </div>
                                                     ))}
-                                                    {recentTransactions.length === 0 && (
+                                                    {!loading && !error && recentTransactions.length === 0 && (
                                                         <div className="text-center py-4">
                                                             <p className="text-sm text-muted-foreground mb-4">No recent activity.</p>
                                                             <div className="flex gap-2 justify-center">
@@ -218,12 +310,84 @@ export function HeroSection() {
                                         </CardContent>
                                     </Card>
                                 </TabsContent>
+
+                                <TabsContent value="reports" className="space-y-4">
+                                    <div className="grid gap-4 md:grid-cols-3">
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Monthly Summary</CardTitle>
+                                                <CardDescription>
+                                                    {now.toLocaleString("en-IN", { month: "long", year: "numeric" })}
+                                                </CardDescription>
+                                            </CardHeader>
+                                            <CardContent className="space-y-2 text-sm">
+                                                <p className="flex justify-between">
+                                                    <span>Income (Realized Exits)</span>
+                                                    <span className="font-semibold text-emerald-500">{formatCurrency(monthlyRealizedIncome)}</span>
+                                                </p>
+                                                <p className="flex justify-between">
+                                                    <span>Expenses</span>
+                                                    <span className="font-semibold text-red-500">{formatCurrency(monthlyExpenses)}</span>
+                                                </p>
+                                                <p className="flex justify-between border-t pt-2">
+                                                    <span>Net Savings</span>
+                                                    <span className={`font-semibold ${monthlyNetSavings >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                                                        {formatCurrency(monthlyNetSavings)}
+                                                    </span>
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Investment Performance</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-2 text-sm">
+                                                <p className="flex justify-between">
+                                                    <span>Active Plans</span>
+                                                    <span className="font-semibold">{dashboardData.activePlanCount}</span>
+                                                </p>
+                                                <p className="flex justify-between">
+                                                    <span>Active Value</span>
+                                                    <span className="font-semibold">{formatCurrency(dashboardData.totalActiveInvestments)}</span>
+                                                </p>
+                                                <p className="flex justify-between">
+                                                    <span>Realized Value</span>
+                                                    <span className="font-semibold">{formatCurrency(dashboardData.totalRealizedInvestments)}</span>
+                                                </p>
+                                            </CardContent>
+                                        </Card>
+
+                                        <Card>
+                                            <CardHeader>
+                                                <CardTitle>Top Expense Categories</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="space-y-2 text-sm">
+                                                {topCategories.length === 0 ? (
+                                                    <p className="text-muted-foreground">No expenses this month.</p>
+                                                ) : (
+                                                    topCategories.map((item) => (
+                                                        <p key={item.category} className="flex justify-between">
+                                                            <span>{item.category}</span>
+                                                            <span className="font-semibold">{formatCurrency(item.amount)}</span>
+                                                        </p>
+                                                    ))
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                    <div className="flex justify-end">
+                                        <Button variant="outline" onClick={() => navigate("/reports")}>
+                                            Open Detailed Reports
+                                        </Button>
+                                    </div>
+                                </TabsContent>
                             </Tabs>
                         </div>
                     </div>
 
                     <div className="mt-8 flex justify-center gap-4">
-                        <Button size="lg" className="gap-2">
+                        <Button size="lg" className="gap-2" onClick={() => navigate('/reports')}>
                             View Full Report <ArrowUpRight className="h-4 w-4" />
                         </Button>
                         <Button size="lg" variant="outline">

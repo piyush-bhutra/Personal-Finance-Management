@@ -5,6 +5,16 @@ import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { ThemeToggle } from './ui/theme-toggle';
 
+const NavItem = ({ to, children, onClick }) => (
+    <Link
+        to={to}
+        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        onClick={onClick}
+    >
+        {children}
+    </Link>
+);
+
 const Navbar = ({ variant = 'public' }) => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
@@ -13,16 +23,6 @@ const Navbar = ({ variant = 'public' }) => {
         localStorage.removeItem('user');
         navigate('/login');
     };
-
-    const NavLink = ({ to, children, onClick }) => (
-        <Link
-            to={to}
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            onClick={onClick}
-        >
-            {children}
-        </Link>
-    );
 
     return (
         <nav className="w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -38,15 +38,15 @@ const Navbar = ({ variant = 'public' }) => {
                 <div className="hidden md:flex items-center gap-8">
                     {variant === 'auth' ? (
                         <>
-                            <NavLink to="/home">Dashboard</NavLink>
-                            <NavLink to="/expenses">Expenses</NavLink>
-                            <NavLink to="/investments">Investments</NavLink>
+                            <NavItem to="/home">Dashboard</NavItem>
+                            <NavItem to="/expenses">Expenses</NavItem>
+                            <NavItem to="/investments">Investments</NavItem>
                         </>
                     ) : (
                         <>
-                            <NavLink to="/">Features</NavLink>
-                            <NavLink to="/about">About</NavLink>
-                            <NavLink to="/support">Support</NavLink>
+                            <NavItem to="/">Features</NavItem>
+                            <NavItem to="/about">About</NavItem>
+                            <NavItem to="/support">Support</NavItem>
                         </>
                     )}
                 </div>
@@ -83,9 +83,9 @@ const Navbar = ({ variant = 'public' }) => {
                                 <div className="flex flex-col gap-4">
                                     {variant === 'auth' ? (
                                         <>
-                                            <NavLink to="/home" onClick={() => setIsOpen(false)}>Dashboard</NavLink>
-                                            <NavLink to="/expenses" onClick={() => setIsOpen(false)}>Expenses</NavLink>
-                                            <NavLink to="/investments" onClick={() => setIsOpen(false)}>Investments</NavLink>
+                                            <NavItem to="/home" onClick={() => setIsOpen(false)}>Dashboard</NavItem>
+                                            <NavItem to="/expenses" onClick={() => setIsOpen(false)}>Expenses</NavItem>
+                                            <NavItem to="/investments" onClick={() => setIsOpen(false)}>Investments</NavItem>
                                             <Button variant="outline" onClick={handleLogout} className="justify-start gap-2 mt-4">
                                                 <LogOut className="h-4 w-4" />
                                                 Logout
@@ -93,9 +93,9 @@ const Navbar = ({ variant = 'public' }) => {
                                         </>
                                     ) : (
                                         <>
-                                            <NavLink to="/" onClick={() => setIsOpen(false)}>Features</NavLink>
-                                            <NavLink to="/about" onClick={() => setIsOpen(false)}>About</NavLink>
-                                            <NavLink to="/support" onClick={() => setIsOpen(false)}>Support</NavLink>
+                                            <NavItem to="/" onClick={() => setIsOpen(false)}>Features</NavItem>
+                                            <NavItem to="/about" onClick={() => setIsOpen(false)}>About</NavItem>
+                                            <NavItem to="/support" onClick={() => setIsOpen(false)}>Support</NavItem>
                                             <div className="flex flex-col gap-2 mt-4">
                                                 <Link to="/login" onClick={() => setIsOpen(false)}>
                                                     <Button variant="outline" className="w-full">Log In</Button>

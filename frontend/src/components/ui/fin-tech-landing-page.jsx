@@ -1,5 +1,5 @@
-import React from "react";
-import { motion } from "framer-motion";
+﻿import React from "react";
+import { motion as Motion } from "framer-motion";
 import { ShieldCheck, ArrowUpRight, CheckCircle2, PieChart, TrendingUp, Wallet, Users } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 import { MagicCard } from "./magic-card";
@@ -31,7 +31,7 @@ function MiniBars() {
     return (
         <div className="mt-6 flex h-36 items-end gap-4 rounded-xl bg-gradient-to-b from-secondary/50 to-background p-4 border border-border">
             {[18, 48, 72, 96].map((h, i) => (
-                <motion.div
+                <Motion.div
                     key={i}
                     initial={{ height: 0, opacity: 0.6 }}
                     animate={{ height: h }}
@@ -45,7 +45,7 @@ function MiniBars() {
 
 function Planet() {
     return (
-        <motion.svg
+        <Motion.svg
             initial={{ rotate: -8 }}
             animate={{ rotate: 0 }}
             transition={{ duration: 2, type: "spring" }}
@@ -64,12 +64,12 @@ function Planet() {
             <circle cx="110" cy="110" r="56" fill="url(#grad)" opacity="0.95" />
             <circle cx="94" cy="98" r="10" fill="white" opacity="0.45" />
             <circle cx="132" cy="126" r="8" fill="white" opacity="0.35" />
-            <motion.ellipse
+            <Motion.ellipse
                 cx="110" cy="110" rx="100" ry="34" stroke="white" strokeOpacity="0.6" fill="none"
                 animate={{ strokeDashoffset: [200, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} strokeDasharray="200 200"
             />
-            <motion.circle cx="210" cy="110" r="4" fill="white" animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 2.2, repeat: Infinity }} />
-        </motion.svg>
+            <Motion.circle cx="210" cy="110" r="4" fill="white" animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 2.2, repeat: Infinity }} />
+        </Motion.svg>
     );
 }
 
@@ -135,8 +135,8 @@ export default function MoneyflowLandingPage() {
                 {/* Right-side hero cards */}
 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-  {/* Card 1 — Expense Tracking */}
-  <motion.div
+  {/* Card 1 â€” Expense Tracking */}
+  <Motion.div
     initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.1, duration: 0.5 }}
@@ -153,10 +153,10 @@ export default function MoneyflowLandingPage() {
         money actually goes.
       </p>
     </MagicCard>
-  </motion.div>
+  </Motion.div>
 
-  {/* Card 2 — Investment Management */}
-  <motion.div
+  {/* Card 2 â€” Investment Management */}
+  <Motion.div
     initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.15, duration: 0.5 }}
@@ -169,14 +169,14 @@ export default function MoneyflowLandingPage() {
         Investment Management
       </span>
       <p className="mt-3 text-sm text-foreground leading-relaxed">
-        Manage one-time and recurring investments, with a clear view of what’s
-        active and what’s already closed.
+        Manage one-time and recurring investments, with a clear view of whatâ€™s
+        active and whatâ€™s already closed.
       </p>
     </MagicCard>
-  </motion.div>
+  </Motion.div>
 
-  {/* Card 3 — Net Worth Overview */}
-  <motion.div
+  {/* Card 3 â€” Net Worth Overview */}
+  <Motion.div
     initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.2, duration: 0.5 }}
@@ -193,10 +193,10 @@ export default function MoneyflowLandingPage() {
         realized returns change over time.
       </p>
     </MagicCard>
-  </motion.div>
+  </Motion.div>
 
-  {/* Card 4 — History & Insights */}
-  <motion.div
+  {/* Card 4 â€” History & Insights */}
+  <Motion.div
     initial={{ opacity: 0, y: 12 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.25, duration: 0.5 }}
@@ -210,10 +210,10 @@ export default function MoneyflowLandingPage() {
       </span>
       <p className="mt-3 text-sm text-foreground leading-relaxed">
         Look back at past transactions and portfolio allocation to understand
-        long-term patterns, not just today’s numbers.
+        long-term patterns, not just todayâ€™s numbers.
       </p>
     </MagicCard>
-  </motion.div>
+  </Motion.div>
 
 </div>
             </div>
@@ -277,3 +277,5 @@ export default function MoneyflowLandingPage() {
         </div>
     );
 }
+
+

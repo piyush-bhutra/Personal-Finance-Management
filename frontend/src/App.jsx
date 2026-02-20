@@ -10,6 +10,7 @@ import ExpensesPage from './pages/Expenses';
 import InvestmentsPage from './pages/Investments';
 import FeaturesPage from './pages/Features';
 import TransactionsPage from './pages/TransactionsPage';
+import ReportsPage from './pages/Reports';
 import Footer from './components/Footer';
 
 // Layout wrapper that adds footer to every page
@@ -42,6 +43,7 @@ const App = () => {
           <Route path="/expenses" element={<ExpensesPage />} />
           <Route path="/investments" element={<InvestmentsPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
         </Routes>
       </Layout>
     </Router>

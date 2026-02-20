@@ -13,9 +13,12 @@ export default function LoginPage() {
         password: '',
     });
     const { email, password } = formData;
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const onChange = (e) => {
+        setError('');
         setFormData((prevState) => ({
             ...prevState,
             [e.target.id]: e.target.value,
@@ -25,6 +28,7 @@ export default function LoginPage() {
     const onSubmit = async (e) => {
         e.preventDefault();
 
+        setLoading(true);
         try {
             const userData = {
                 email,
@@ -34,7 +38,9 @@ export default function LoginPage() {
             navigate('/home');
         } catch (error) {
             console.error(error);
-            alert('Login failed. Please check your credentials.');
+            setError('Login failed. Please check your credentials.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -58,9 +64,10 @@ export default function LoginPage() {
                                 <Label htmlFor="password">Password</Label>
                                 <Input id="password" type="password" value={password} onChange={onChange} required />
                             </div>
+                            {error && <p className="text-sm text-red-500">{error}</p>}
                         </CardContent>
                         <CardFooter className="flex flex-col gap-4">
-                            <Button className="w-full" type="submit">Sign in</Button>
+                            <Button className="w-full" type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</Button>
                             <div className="text-center text-sm text-muted-foreground">
                                 Don't have an account?{" "}
                                 <a href="/register" className="underline hover:text-primary">

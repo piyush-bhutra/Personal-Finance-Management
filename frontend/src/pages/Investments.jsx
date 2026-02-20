@@ -1,536 +1,306 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
-import { Badge } from '../components/ui/badge';
-import investmentService from '../features/investments/investmentService';
-import { Plus, Trash2, Edit2, TrendingUp, TrendingDown, RefreshCw, Zap, CalendarDays, StopCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../components/ui/dialog";
+import investmentService from "../features/investments/investmentService";
+import { formatCurrency, formatDate, toISODate } from "../lib/format";
 
-/* ─────── Helpers ─────── */
-const fmt = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+const ASSET_TYPES = ["Stock", "Crypto", "Real Estate", "Bond", "Mutual Fund", "Fixed Deposit", "Gold", "SIP", "Other"];
+const MAX_AMOUNT = 100000000;
+const MAX_RETURN = 100;
+
+const recurringDefaults = { investmentMode: "recurring", assetName: "", type: "Mutual Fund", monthlyAmount: "", startDate: "", expectedReturnRate: "", description: "" };
+const oneTimeDefaults = { investmentMode: "one-time", assetName: "", type: "Stock", amount: "", date: "", expectedReturnRate: "", description: "" };
+
 const nowYM = () => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-};
-
-const SELECT_CLS =
-    'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ' +
-    'ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none ' +
-    'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
-
-const ASSET_TYPES = ['Stock', 'Crypto', 'Real Estate', 'Bond', 'Mutual Fund', 'Fixed Deposit', 'Gold', 'SIP', 'Other'];
-
-/* ─────── Default form states ─────── */
-const RECURRING_DEFAULTS = {
-    investmentMode: 'recurring',
-    assetName: '',
-    type: 'Mutual Fund',
-    monthlyAmount: '',
-    startDate: '',
-    expectedReturnRate: '',
-    description: '',
-};
-
-const ONETIME_DEFAULTS = {
-    investmentMode: 'one-time',
-    assetName: '',
-    type: 'Stock',
-    amount: '',
-    date: '',
-    expectedReturnRate: '',
-    description: '',
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 
 export default function InvestmentsPage() {
-    const [investments, setInvestments] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [investments, setInvestments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState("");
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [mode, setMode] = useState("recurring");
+  const [formData, setFormData] = useState(recurringDefaults);
 
-    // Add form
-    const [mode, setMode] = useState('recurring'); // 'recurring' | 'one-time'
-    const [formData, setFormData] = useState(RECURRING_DEFAULTS);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [fromDateOpen, setFromDateOpen] = useState(false);
+  const [fromDate, setFromDate] = useState(nowYM());
+  const [pendingDeleteId, setPendingDeleteId] = useState("");
 
-    // Edit
-    const [editOpen, setEditOpen] = useState(false);
-    const [editTarget, setEditTarget] = useState(null);
-    const [editData, setEditData] = useState({});
-    // Month picker for edit/delete of recurring
-    const [fromDateOpen, setFromDateOpen] = useState(false);
-    const [pendingAction, setPendingAction] = useState(null); // { type: 'edit'|'delete', id, data? }
-    const [fromDate, setFromDate] = useState(nowYM());
+  const [stopOpen, setStopOpen] = useState(false);
+  const [stopTarget, setStopTarget] = useState(null);
+  const [stopDate, setStopDate] = useState(toISODate(new Date()));
+  const [realizedValue, setRealizedValue] = useState("");
 
-    // Stop/Sell
-    const [stopOpen, setStopOpen] = useState(false);
-    const [stopTarget, setStopTarget] = useState(null);
-    const [stopData, setStopData] = useState({ stopDate: '', realizedValue: '' });
+  const loadInvestments = async () => {
+    setLoading(true);
+    setApiError("");
+    try {
+      const data = await investmentService.getInvestments();
+      setInvestments(data || []);
+    } catch {
+      setApiError("Unable to load investments right now. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    /* ─── Fetch ─── */
-    const fetchInvestments = async () => {
-        setLoading(true);
-        try {
-            const data = await investmentService.getInvestments();
-            setInvestments(data);
-        } catch (err) {
-            console.error('Fetch error:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  useEffect(() => {
+    loadInvestments();
+  }, []);
 
-    useEffect(() => { fetchInvestments(); }, []);
+  const isFutureDate = (v) => {
+    const d = new Date(v);
+    const t = new Date();
+    t.setHours(23, 59, 59, 999);
+    return Number.isNaN(d.getTime()) || d > t;
+  };
 
-    /* ─── Mode switch ─── */
-    const handleModeSwitch = (newMode) => {
-        setMode(newMode);
-        setFormData(newMode === 'recurring' ? RECURRING_DEFAULTS : ONETIME_DEFAULTS);
-    };
+  const validateCommon = (assetName, returnRate) => {
+    if (!assetName?.trim()) return "Asset name is required.";
+    if (returnRate !== "" && (Number(returnRate) < 0 || Number(returnRate) > MAX_RETURN)) return `Expected return must be between 0 and ${MAX_RETURN}.`;
+    return "";
+  };
 
-    /* ─── Add Investment ─── */
-    const handleChange = (e) => setFormData({ ...formData, [e.target.id]: e.target.value });
+  const validateCreate = () => {
+    const common = validateCommon(formData.assetName, formData.expectedReturnRate);
+    if (common) return common;
+    if (mode === "recurring") {
+      const m = Number(formData.monthlyAmount);
+      if (!Number.isFinite(m) || m <= 0 || m > MAX_AMOUNT) return "Monthly amount must be between 1 and 100000000.";
+      if (!formData.startDate || isFutureDate(formData.startDate)) return "Start date is required and cannot be in the future.";
+    } else {
+      const a = Number(formData.amount);
+      if (!Number.isFinite(a) || a <= 0 || a > MAX_AMOUNT) return "Amount must be between 1 and 100000000.";
+      if (!formData.date || isFutureDate(formData.date)) return "Investment date is required and cannot be in the future.";
+    }
+    return "";
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await investmentService.createInvestment(formData);
-            setFormData(mode === 'recurring' ? RECURRING_DEFAULTS : ONETIME_DEFAULTS);
-            fetchInvestments();
-        } catch (err) {
-            console.error('Create error:', err);
-        }
-    };
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    const err = validateCreate();
+    if (err) return setFormError(err);
 
-    /* ─── Edit ─── */
-    const openEdit = (inv) => {
-        setEditTarget(inv);
-        if (inv.investmentMode === 'recurring') {
-            setEditData({
-                monthlyAmount: inv.monthlyAmount,
-                assetName: inv.assetName,
-                type: inv.type,
-                expectedReturnRate: inv.expectedReturnRate ?? 12,
-                description: inv.description ?? '',
-            });
-        } else {
-            setEditData({
-                amount: inv.amount,
-                assetName: inv.assetName,
-                type: inv.type,
-                date: inv.date ? inv.date.split('T')[0] : '',
-                expectedReturnRate: inv.expectedReturnRate ?? 10,
-                description: inv.description ?? '',
-            });
-        }
-        if (inv.investmentMode === 'recurring') {
-            // Need to ask "from which month?"
-            setFromDate(nowYM());
-            setPendingAction({ type: 'edit', id: inv._id });
-            setFromDateOpen(true);
-        } else {
-            setEditOpen(true);
-        }
-    };
+    setSubmitting(true);
+    setFormError("");
+    setApiError("");
+    try {
+      const payload = { ...formData, assetName: formData.assetName.trim() };
+      await investmentService.createInvestment(payload);
+      setFormData(mode === "recurring" ? recurringDefaults : oneTimeDefaults);
+      await loadInvestments();
+    } catch {
+      setApiError("Could not save investment. Please check values and try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    const handleEditSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const payload = { ...editData };
-            if (editTarget.investmentMode === 'recurring') payload.fromDate = fromDate;
-            await investmentService.updateInvestment(editTarget._id, payload);
-            setEditOpen(false);
-            setEditTarget(null);
-            fetchInvestments();
-        } catch (err) {
-            console.error('Edit error:', err);
-        }
-    };
+  const openEdit = (inv) => {
+    setEditTarget(inv);
+    if (inv.investmentMode === "recurring") {
+      setEditData({ assetName: inv.assetName, type: inv.type, monthlyAmount: inv.monthlyAmount, expectedReturnRate: inv.expectedReturnRate ?? "", description: inv.description ?? "" });
+      setFromDate(nowYM());
+      setFromDateOpen(true);
+    } else {
+      setEditData({ assetName: inv.assetName, type: inv.type, amount: inv.amount, date: toISODate(inv.date), expectedReturnRate: inv.expectedReturnRate ?? "", description: inv.description ?? "" });
+      setEditOpen(true);
+    }
+  };
 
-    /* ─── Delete ─── */
-    const handleDelete = (inv) => {
-        if (inv.investmentMode === 'recurring') {
-            setFromDate(nowYM());
-            setPendingAction({ type: 'delete', id: inv._id });
-            setFromDateOpen(true);
-        } else {
-            confirmDelete(inv._id, null);
-        }
-    };
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    const common = validateCommon(editData.assetName, editData.expectedReturnRate);
+    if (common) return setFormError(common);
+    if (editTarget.investmentMode === "recurring" && (Number(editData.monthlyAmount) <= 0 || Number(editData.monthlyAmount) > MAX_AMOUNT)) return setFormError("Monthly amount must be between 1 and 100000000.");
+    if (editTarget.investmentMode === "one-time") {
+      if (Number(editData.amount) <= 0 || Number(editData.amount) > MAX_AMOUNT) return setFormError("Amount must be between 1 and 100000000.");
+      if (!editData.date || isFutureDate(editData.date)) return setFormError("Valid non-future date is required.");
+    }
 
-    const confirmDelete = async (id, fd) => {
-        try {
-            await investmentService.deleteInvestment(id, fd);
-            setInvestments((prev) => prev.filter((i) => i._id !== id));
-        } catch (err) {
-            console.error('Delete error:', err);
-        }
-    };
+    setSubmitting(true);
+    setFormError("");
+    setApiError("");
+    try {
+      const payload = { ...editData, assetName: editData.assetName.trim() };
+      if (editTarget.investmentMode === "recurring") payload.fromDate = fromDate;
+      await investmentService.updateInvestment(editTarget._id, payload);
+      setEditOpen(false);
+      setEditTarget(null);
+      await loadInvestments();
+    } catch {
+      setApiError("Could not update investment right now. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    /* ─── From-date dialog: confirm ─── */
-    const confirmFromDateAction = () => {
-        setFromDateOpen(false);
-        if (!pendingAction) return;
-        if (pendingAction.type === 'delete') {
-            confirmDelete(pendingAction.id, fromDate);
-        } else if (pendingAction.type === 'edit') {
-            setEditOpen(true);
-        }
-        setPendingAction(null);
-    };
+  const doDelete = async (id, fd) => {
+    setSubmitting(true);
+    setApiError("");
+    try {
+      await investmentService.deleteInvestment(id, fd);
+      setInvestments((prev) => prev.filter((x) => x._id !== id));
+    } catch {
+      setApiError("Could not delete investment right now. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    /* ─── Stop/Sell Handlers ─── */
-    const handleStop = (inv) => {
-        setStopTarget(inv);
-        setStopData({
-            stopDate: new Date().toISOString().split('T')[0],
-            realizedValue: inv.currentValue || 0
-        });
-        setStopOpen(true);
-    };
+  const openStop = (inv) => {
+    setStopTarget(inv);
+    setStopDate(toISODate(new Date()));
+    setRealizedValue(String(inv.currentValue || 0));
+    setStopOpen(true);
+  };
 
-    const confirmStop = async () => {
-        try {
-            await investmentService.stopInvestment(stopTarget._id, stopData);
-            setStopOpen(false);
-            setStopTarget(null);
-            fetchInvestments();
-        } catch (err) {
-            console.error('Stop error:', err);
-        }
-    };
+  const confirmStop = async () => {
+    if (!stopDate || isFutureDate(stopDate)) return setFormError("Stop date cannot be in the future.");
+    if (!Number.isFinite(Number(realizedValue)) || Number(realizedValue) < 0) return setFormError("Realized value must be 0 or greater.");
+    setSubmitting(true);
+    setFormError("");
+    setApiError("");
+    try {
+      await investmentService.stopInvestment(stopTarget._id, { stopDate, realizedValue: Number(realizedValue) });
+      setStopOpen(false);
+      setStopTarget(null);
+      await loadInvestments();
+    } catch {
+      setApiError("Could not stop/sell investment right now. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    /* ─────────────────────── RENDER ─────────────────────── */
-    return (
-        <div className="min-h-screen bg-background text-foreground">
-            <Navbar variant="auth" />
-            <div className="container mx-auto py-10 px-4 max-w-6xl">
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Navbar variant="auth" />
+      <div className="container mx-auto py-10 px-4 max-w-6xl space-y-6">
+        <h1 className="text-3xl font-bold">Investments</h1>
+        {apiError && <Card><CardContent className="py-4 text-sm text-red-500">{apiError}</CardContent></Card>}
 
-                <motion.h1
-                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    className="text-3xl font-bold mb-8"
-                >
-                    Investments
-                </motion.h1>
+        <div className="grid md:grid-cols-3 gap-8">
+          <Card className="md:col-span-1 h-fit sticky top-24">
+            <CardHeader><CardTitle>Add Investment</CardTitle></CardHeader>
+            <CardContent>
+              <div className="flex gap-2 mb-4">
+                <Button type="button" variant={mode === "recurring" ? "default" : "outline"} onClick={() => { setMode("recurring"); setFormData(recurringDefaults); setFormError(""); }}>Recurring</Button>
+                <Button type="button" variant={mode === "one-time" ? "default" : "outline"} onClick={() => { setMode("one-time"); setFormData(oneTimeDefaults); setFormError(""); }}>One-Time</Button>
+              </div>
+              <form onSubmit={handleCreate} className="space-y-3">
+                <div><Label htmlFor="assetName">Asset Name</Label><Input id="assetName" value={formData.assetName} onChange={(e) => setFormData({ ...formData, assetName: e.target.value })} required /></div>
+                <div><Label htmlFor="type">Type</Label><select id="type" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}>{ASSET_TYPES.map((t) => <option key={t}>{t}</option>)}</select></div>
+                {mode === "recurring" ? (
+                  <>
+                    <div><Label htmlFor="monthlyAmount">Monthly Amount (INR)</Label><Input id="monthlyAmount" type="number" min="1" max={MAX_AMOUNT} value={formData.monthlyAmount} onChange={(e) => setFormData({ ...formData, monthlyAmount: e.target.value })} required /></div>
+                    <div><Label htmlFor="startDate">Start Date</Label><Input id="startDate" type="date" max={toISODate(new Date())} value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} required /></div>
+                  </>
+                ) : (
+                  <>
+                    <div><Label htmlFor="amount">Amount (INR)</Label><Input id="amount" type="number" min="1" max={MAX_AMOUNT} value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required /></div>
+                    <div><Label htmlFor="date">Investment Date</Label><Input id="date" type="date" max={toISODate(new Date())} value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required /></div>
+                  </>
+                )}
+                <div><Label htmlFor="expectedReturnRate">Expected Return (% p.a.)</Label><Input id="expectedReturnRate" type="number" step="0.1" min="0" max={MAX_RETURN} value={formData.expectedReturnRate} onChange={(e) => setFormData({ ...formData, expectedReturnRate: e.target.value })} /></div>
+                <div><Label htmlFor="description">Notes</Label><Input id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
+                {formError && <p className="text-sm text-red-500">{formError}</p>}
+                <Button type="submit" className="w-full" disabled={submitting}>{submitting ? "Saving..." : "Add Investment"}</Button>
+              </form>
+            </CardContent>
+          </Card>
 
-                <div className="grid md:grid-cols-3 gap-8">
-
-                    {/* ── Add Form ── */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.15 }} className="md:col-span-1"
-                    >
-                        <Card className="sticky top-24">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-base">Add Investment</CardTitle>
-                                {/* Mode toggle */}
-                                <div className="flex mt-2 rounded-lg border border-border overflow-hidden">
-                                    {['recurring', 'one-time'].map((m) => (
-                                        <button
-                                            key={m}
-                                            type="button"
-                                            onClick={() => handleModeSwitch(m)}
-                                            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium transition-colors
-                                                ${mode === m ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
-                                        >
-                                            {m === 'recurring' ? <RefreshCw size={12} /> : <Zap size={12} />}
-                                            {m === 'recurring' ? 'Recurring' : 'One-Time'}
-                                        </button>
-                                    ))}
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <form onSubmit={handleSubmit} className="space-y-3">
-                                    {/* Asset name */}
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="assetName">Asset Name</Label>
-                                        <Input id="assetName" placeholder="e.g. Nifty 50 Index Fund"
-                                            value={formData.assetName} onChange={handleChange} required />
-                                    </div>
-                                    {/* Type */}
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="type">Type</Label>
-                                        <select id="type" className={SELECT_CLS}
-                                            value={formData.type} onChange={handleChange} required>
-                                            {ASSET_TYPES.map((t) => <option key={t}>{t}</option>)}
-                                        </select>
-                                    </div>
-
-                                    {mode === 'recurring' ? (
-                                        <>
-                                            <div className="space-y-1.5">
-                                                <Label htmlFor="monthlyAmount">Monthly Amount (₹)</Label>
-                                                <Input id="monthlyAmount" type="number" min="1" placeholder="5000"
-                                                    value={formData.monthlyAmount} onChange={handleChange} required />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <Label htmlFor="startDate">Start Date</Label>
-                                                <Input id="startDate" type="date"
-                                                    value={formData.startDate} onChange={handleChange} required />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="space-y-1.5">
-                                                <Label htmlFor="amount">Amount (₹)</Label>
-                                                <Input id="amount" type="number" min="1" placeholder="50000"
-                                                    value={formData.amount} onChange={handleChange} required />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <Label htmlFor="date">Investment Date</Label>
-                                                <Input id="date" type="date"
-                                                    value={formData.date} onChange={handleChange} required />
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {/* Expected return */}
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="expectedReturnRate">Expected Return (% p.a.)</Label>
-                                        <Input id="expectedReturnRate" type="number" step="0.1" min="0" max="100"
-                                            placeholder="12" value={formData.expectedReturnRate} onChange={handleChange} />
-                                    </div>
-                                    {/* Description */}
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="description">Notes (optional)</Label>
-                                        <Input id="description" placeholder="Details..."
-                                            value={formData.description} onChange={handleChange} />
-                                    </div>
-
-                                    <Button type="submit" className="w-full flex items-center gap-2 mt-1">
-                                        <Plus size={15} />
-                                        Add {mode === 'recurring' ? 'Recurring' : 'One-Time'} Investment
-                                    </Button>
-                                </form>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-
-                    {/* ── Investments List ── */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 }} className="md:col-span-2 space-y-4"
-                    >
-                        {loading ? (
-                            <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
-                                Loading…
-                            </div>
-                        ) : investments.length === 0 ? (
-                            <Card>
-                                <CardContent className="py-16 text-center text-muted-foreground">
-                                    No investments yet. Add one on the left.
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <AnimatePresence>
-                                {investments.map((inv) => {
-                                    const isUp = (inv.gain ?? 0) >= 0;
-                                    const activeEntries = (inv.entries ?? []).filter((e) => e.isActive);
-                                    return (
-                                        <motion.div
-                                            key={inv._id}
-                                            layout
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -10 }}
-                                        >
-                                            <Card className={`border-border hover:shadow-sm transition-shadow ${inv.status === 'closed' ? 'opacity-75 bg-muted/30' : ''}`}>
-                                                <CardContent className="pt-5 pb-4">
-                                                    <div className="flex items-start justify-between gap-4">
-                                                        {/* Left info */}
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <p className="font-semibold truncate">{inv.assetName}</p>
-                                                                {inv.status === 'closed' && <Badge variant="secondary" className="bg-neutral-500/10 text-neutral-500 text-xs">Closed</Badge>}
-                                                                <Badge variant="secondary" className="text-xs shrink-0">{inv.type}</Badge>
-                                                                <Badge
-                                                                    variant="outline"
-                                                                    className={`text-xs shrink-0 ${inv.investmentMode === 'recurring' ? 'border-blue-500/40 text-blue-500' : 'border-amber-500/40 text-amber-500'}`}
-                                                                >
-                                                                    {inv.investmentMode === 'recurring' ? <RefreshCw size={10} className="inline mr-1" /> : <Zap size={10} className="inline mr-1" />}
-                                                                    {inv.investmentMode === 'recurring' ? 'Recurring' : 'One-Time'}
-                                                                </Badge>
-                                                            </div>
-
-                                                            <div className="mt-2 text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
-                                                                {inv.investmentMode === 'recurring' ? (
-                                                                    <>
-                                                                        <span>{fmt(inv.monthlyAmount)}/mo</span>
-                                                                        <span className="flex items-center gap-1">
-                                                                            <CalendarDays size={11} />
-                                                                            {activeEntries.length} month{activeEntries.length !== 1 ? 's' : ''}
-                                                                        </span>
-                                                                    </>
-                                                                ) : (
-                                                                    <span className="flex items-center gap-1">
-                                                                        <CalendarDays size={11} />
-                                                                        {inv.date ? new Date(inv.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
-                                                                    </span>
-                                                                )}
-                                                                {inv.expectedReturnRate > 0 && (
-                                                                    <span>{inv.expectedReturnRate}% p.a.</span>
-                                                                )}
-                                                                {inv.description && <span className="italic truncate max-w-[160px]">{inv.description}</span>}
-                                                                {inv.status === 'closed' && inv.stopDate && (
-                                                                    <span className="text-red-400">Stopped: {new Date(inv.stopDate).toLocaleDateString('en-IN')}</span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Right financials */}
-                                                        <div className="text-right shrink-0">
-                                                            <p className="text-xs text-muted-foreground">Invested</p>
-                                                            <p className="font-bold">{fmt(inv.totalInvested)}</p>
-                                                            <p className="text-xs text-muted-foreground mt-1">{inv.status === 'closed' ? 'Realized' : 'Current'}</p>
-                                                            <p className="font-semibold">{fmt(inv.currentValue)}</p>
-                                                            <div className={`flex items-center justify-end gap-1 text-xs font-medium mt-1 ${isUp ? 'text-emerald-500' : 'text-red-500'}`}>
-                                                                {isUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                                                                {isUp ? '+' : ''}{fmt(inv.gain)}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Action buttons */}
-                                                    <div className="flex justify-end gap-1 mt-3 pt-3 border-t border-border">
-                                                        {inv.status !== 'closed' && (
-                                                            <Button variant="ghost" size="sm" onClick={() => openEdit(inv)}
-                                                                className="text-muted-foreground hover:text-primary h-7 px-2 text-xs gap-1">
-                                                                <Edit2 size={12} /> Edit
-                                                            </Button>
-                                                        )}
-                                                        {inv.status !== 'closed' && (
-                                                            <Button variant="ghost" size="sm" onClick={() => handleStop(inv)}
-                                                                className="text-muted-foreground hover:text-amber-500 h-7 px-2 text-xs gap-1">
-                                                                <StopCircle size={12} /> Stop/Sell
-                                                            </Button>
-                                                        )}
-                                                        <Button variant="ghost" size="sm" onClick={() => handleDelete(inv)}
-                                                            className="text-muted-foreground hover:text-destructive h-7 px-2 text-xs gap-1">
-                                                            <Trash2 size={12} /> Delete
-                                                        </Button>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        </motion.div>
-                                    );
-                                })}
-                            </AnimatePresence>
-                        )}
-                    </motion.div>
-                </div>
-            </div>
-
-            {/* ── "From which month?" Dialog ── */}
-            <Dialog open={fromDateOpen} onOpenChange={setFromDateOpen}>
-                <DialogContent className="max-w-sm">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {pendingAction?.type === 'delete' ? 'Stop from which month?' : 'Edit from which month?'}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <p className="text-sm text-muted-foreground">
-                        {pendingAction?.type === 'delete'
-                            ? 'Entries before this month will be preserved.'
-                            : 'Only entries from this month onward will be changed. Earlier entries remain unchanged.'}
-                    </p>
-                    <div className="space-y-2">
-                        <Label htmlFor="fromDatePicker">Month</Label>
-                        <Input id="fromDatePicker" type="month"
-                            value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+          <div className="md:col-span-2 space-y-4">
+            {loading ? (
+              <Card><CardContent className="py-10 text-center text-muted-foreground">Loading investments...</CardContent></Card>
+            ) : investments.length === 0 ? (
+              <Card><CardContent className="py-10 text-center text-muted-foreground">No investments yet. Add one to get started.</CardContent></Card>
+            ) : (
+              investments.map((inv) => (
+                <Card key={inv._id}>
+                  <CardContent className="py-4 space-y-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-semibold">{inv.assetName} <span className="text-xs text-muted-foreground">({inv.type})</span></p>
+                        <p className="text-xs text-muted-foreground">{inv.investmentMode === "recurring" ? `${formatCurrency(inv.monthlyAmount)}/mo` : `Date: ${formatDate(inv.date)}`}{inv.status === "closed" ? ` • Closed on ${formatDate(inv.stopDate)}` : ""}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Invested</p>
+                        <p className="font-semibold">{formatCurrency(inv.totalInvested)}</p>
+                        <p className="text-xs text-muted-foreground">{inv.status === "closed" ? "Realized" : "Current"}</p>
+                        <p className="font-semibold">{formatCurrency(inv.currentValue)}</p>
+                      </div>
                     </div>
-                    <DialogFooter className="gap-2 mt-2">
-                        <Button variant="outline" onClick={() => setFromDateOpen(false)}>Cancel</Button>
-                        <Button
-                            onClick={confirmFromDateAction}
-                            variant={pendingAction?.type === 'delete' ? 'destructive' : 'default'}
-                        >
-                            {pendingAction?.type === 'delete' ? 'Stop Investment' : 'Continue Editing'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* ── Edit Dialog ── */}
-            <Dialog open={editOpen} onOpenChange={setEditOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>
-                            Edit — {editTarget?.assetName}
-                            {editTarget?.investmentMode === 'recurring' && (
-                                <span className="ml-2 text-xs font-normal text-muted-foreground">from {fromDate}</span>
-                            )}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleEditSubmit} className="space-y-3">
-                        <div className="space-y-1.5">
-                            <Label>Asset Name</Label>
-                            <Input value={editData.assetName ?? ''} onChange={(e) => setEditData({ ...editData, assetName: e.target.value })} />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label>Type</Label>
-                            <select className={SELECT_CLS} value={editData.type ?? 'Stock'} onChange={(e) => setEditData({ ...editData, type: e.target.value })}>
-                                {ASSET_TYPES.map((t) => <option key={t}>{t}</option>)}
-                            </select>
-                        </div>
-                        {editTarget?.investmentMode === 'recurring' ? (
-                            <div className="space-y-1.5">
-                                <Label>Monthly Amount (₹)</Label>
-                                <Input type="number" min="1" value={editData.monthlyAmount ?? ''}
-                                    onChange={(e) => setEditData({ ...editData, monthlyAmount: e.target.value })} required />
-                            </div>
-                        ) : (
-                            <>
-                                <div className="space-y-1.5">
-                                    <Label>Amount (₹)</Label>
-                                    <Input type="number" min="1" value={editData.amount ?? ''}
-                                        onChange={(e) => setEditData({ ...editData, amount: e.target.value })} required />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label>Date</Label>
-                                    <Input type="date" value={editData.date ?? ''}
-                                        onChange={(e) => setEditData({ ...editData, date: e.target.value })} />
-                                </div>
-                            </>
-                        )}
-                        <div className="space-y-1.5">
-                            <Label>Expected Return (% p.a.)</Label>
-                            <Input type="number" step="0.1" min="0" max="100" value={editData.expectedReturnRate ?? ''}
-                                onChange={(e) => setEditData({ ...editData, expectedReturnRate: e.target.value })} />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label>Notes</Label>
-                            <Input value={editData.description ?? ''}
-                                onChange={(e) => setEditData({ ...editData, description: e.target.value })} />
-                        </div>
-                        <Button type="submit" className="w-full mt-1">Save Changes</Button>
-                    </form>
-                </DialogContent>
-            </Dialog>
-            {/* ── Stop Dialog ── */}
-            <Dialog open={stopOpen} onOpenChange={setStopOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Stop/Sell Investment</DialogTitle>
-                    </DialogHeader>
-                    <div className="text-sm text-muted-foreground mb-4">
-                        Stopping <strong>{stopTarget?.assetName}</strong> will calcuate realized value and stop further growth.
+                    <div className="flex flex-wrap gap-2 justify-end">
+                      {inv.status !== "closed" && <Button variant="outline" size="sm" onClick={() => openEdit(inv)}>Edit</Button>}
+                      {inv.status !== "closed" && <Button variant="outline" size="sm" onClick={() => openStop(inv)}>Stop/Sell</Button>}
+                      <Button variant="destructive" size="sm" onClick={() => inv.investmentMode === "recurring" ? (setPendingDeleteId(inv._id), setFromDate(nowYM()), setFromDateOpen(true)) : doDelete(inv._id, null)}>Delete</Button>
                     </div>
-                    <div className="space-y-4">
-                        <div className="space-y-1.5">
-                            <Label>Stop Date</Label>
-                            <Input type="date" value={stopData.stopDate} onChange={(e) => setStopData({ ...stopData, stopDate: e.target.value })} />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label>Realized Value (₹)</Label>
-                            <Input type="number" value={stopData.realizedValue} onChange={(e) => setStopData({ ...stopData, realizedValue: e.target.value })} />
-                            <p className="text-xs text-muted-foreground">
-                                Current calculated value was {fmt(stopTarget?.currentValue)}
-                            </p>
-                        </div>
-                        <Button className="w-full" onClick={confirmStop}>Confirm Stop/Sell</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </div>
-    );
+      </div>
+
+      <Dialog open={fromDateOpen} onOpenChange={setFromDateOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Select Month</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="fromDate">From Month</Label>
+            <Input id="fromDate" type="month" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFromDateOpen(false)}>Cancel</Button>
+            <Button onClick={() => { setFromDateOpen(false); pendingDeleteId ? doDelete(pendingDeleteId, fromDate) : setEditOpen(true); setPendingDeleteId(""); }}>Continue</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Investment</DialogTitle></DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-3">
+            <div><Label>Asset Name</Label><Input value={editData.assetName || ""} onChange={(e) => setEditData({ ...editData, assetName: e.target.value })} /></div>
+            <div><Label>Type</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={editData.type || "Stock"} onChange={(e) => setEditData({ ...editData, type: e.target.value })}>{ASSET_TYPES.map((t) => <option key={t}>{t}</option>)}</select></div>
+            {editTarget?.investmentMode === "recurring" ? (
+              <div><Label>Monthly Amount (INR)</Label><Input type="number" min="1" max={MAX_AMOUNT} value={editData.monthlyAmount || ""} onChange={(e) => setEditData({ ...editData, monthlyAmount: e.target.value })} /></div>
+            ) : (
+              <>
+                <div><Label>Amount (INR)</Label><Input type="number" min="1" max={MAX_AMOUNT} value={editData.amount || ""} onChange={(e) => setEditData({ ...editData, amount: e.target.value })} /></div>
+                <div><Label>Date</Label><Input type="date" max={toISODate(new Date())} value={editData.date || ""} onChange={(e) => setEditData({ ...editData, date: e.target.value })} /></div>
+              </>
+            )}
+            <div><Label>Expected Return (% p.a.)</Label><Input type="number" step="0.1" min="0" max={MAX_RETURN} value={editData.expectedReturnRate || ""} onChange={(e) => setEditData({ ...editData, expectedReturnRate: e.target.value })} /></div>
+            <div><Label>Notes</Label><Input value={editData.description || ""} onChange={(e) => setEditData({ ...editData, description: e.target.value })} /></div>
+            {formError && <p className="text-sm text-red-500">{formError}</p>}
+            <Button type="submit" className="w-full" disabled={submitting}>{submitting ? "Saving..." : "Save Changes"}</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={stopOpen} onOpenChange={setStopOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Stop/Sell Investment</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Stop Date</Label><Input type="date" max={toISODate(new Date())} value={stopDate} onChange={(e) => setStopDate(e.target.value)} /></div>
+            <div><Label>Realized Value (INR)</Label><Input type="number" min="0" value={realizedValue} onChange={(e) => setRealizedValue(e.target.value)} /></div>
+            {formError && <p className="text-sm text-red-500">{formError}</p>}
+            <Button className="w-full" onClick={confirmStop} disabled={submitting}>{submitting ? "Processing..." : "Confirm Stop/Sell"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }

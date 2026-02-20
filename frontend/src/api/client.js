@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+console.log("VITE_API_URL =", import.meta.env.VITE_API_URL);
 const client = axios.create({
-    baseURL: (import.meta.env.VITE_API_BASE_URL || '') + '/api',
+    baseURL: `${import.meta.env.VITE_API_URL}/api`,
 });
 
 // Request interceptor to add auth token
@@ -13,9 +14,7 @@ client.interceptors.request.use(
         }
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
 export default client;

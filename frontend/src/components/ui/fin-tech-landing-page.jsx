@@ -120,7 +120,7 @@ export default function MoneyflowLandingPage() {
                             with clarity.
                         </h1>
                         <p className="mt-6 max-w-md text-lg text-muted-foreground">
-                            Join thousands who choose <span className="font-medium text-foreground">FinanceFlow</span> to track expenses, budget smarter, and grow their savings.
+                            Track expenses, manage investments, and review net worth using your recorded transactions.
                         </p>
                     </div>
 
@@ -129,118 +129,93 @@ export default function MoneyflowLandingPage() {
                             Get Started <ArrowUpRight className="ml-1 inline h-5 w-5" />
                         </SoftButton>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-8 pt-4 md:max-w-sm border-t border-border mt-4">
-                        <Stat label="Active Users" value="10k+" />
-                        <Stat label="Total Savings" value="₹12Cr+" />
-                    </div>
-
-                    <div className="mt-8 flex items-center gap-8 opacity-70">
-                        <span className="text-xs font-semibold text-muted-foreground tracking-wider">TRUSTED BY</span>
-                        <div className="flex items-center gap-6 text-muted-foreground/80 grayscale opacity-80 hover:opacity-100 transition-opacity">
-                            <span className="font-semibold text-sm">TechCrunch</span>
-                            <span className="font-semibold text-sm">Forbes</span>
-                            <span className="font-semibold text-sm">Bloomberg</span>
-                        </div>
-                    </div>
                 </div>
 
-                {/* Right: animated card grid */}
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    {/* Secure card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                    >
-                        <MagicCard
-                            className="relative overflow-hidden rounded-2xl border-border p-6 shadow-sm"
-                            gradientColor={magicColor}
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl pointer-events-none"></div>
-                            <div className="relative flex h-full flex-col justify-between" style={{ minHeight: "200px" }}>
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-full bg-primary/10 p-2 text-primary">
-                                        <ShieldCheck className="h-5 w-5" />
-                                    </div>
-                                    <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Private & Secure</span>
-                                </div>
-                                <div className="mt-auto text-xl font-medium leading-snug text-card-foreground">
-                                    Your financial data
-                                    <br /> stays private.
-                                </div>
-                                <motion.div
-                                    className="absolute right-6 top-6 h-12 w-12 rounded-full bg-primary/5"
-                                    animate={{ boxShadow: ["0 0 0 0 rgba(var(--primary), 0.1)", "0 0 0 16px rgba(var(--primary), 0)"] }}
-                                    transition={{ duration: 2.5, repeat: Infinity }}
-                                />
-                            </div>
-                        </MagicCard>
-                    </motion.div>
+                {/* Right: concise capabilities */}
+                {/* Right-side hero cards */}
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                    {/* Budget card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        <MagicCard
-                            className="relative overflow-hidden rounded-2xl bg-primary border-primary/30 p-6 text-primary-foreground shadow-lg"
-                            gradientColor={isDark ? "#ffffff18" : "#00000018"}
-                            gradientOpacity={0.5}
-                        >
-                            <div className="pointer-events-none absolute -right-8 -top-10 opacity-20">
-                                <Planet />
-                            </div>
-                            <div className="relative h-full flex flex-col justify-between" style={{ minHeight: "200px" }}>
-                                <div className="text-sm text-primary-foreground/90 font-medium">Smart Budgeting</div>
-                                <div className="text-xl font-medium leading-snug">
-                                    Track every penny
-                                    <br /> automatically.
-                                </div>
-                            </div>
-                        </MagicCard>
-                    </motion.div>
+  {/* Card 1 — Expense Tracking */}
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.1, duration: 0.5 }}
+  >
+    <MagicCard
+      className="h-full p-6 shadow-sm border-border"
+      gradientColor={magicColor}
+    >
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+        Expense Tracking
+      </span>
+      <p className="mt-3 text-sm text-foreground leading-relaxed">
+        Capture daily spending, group it by category, and clearly see where your
+        money actually goes.
+      </p>
+    </MagicCard>
+  </motion.div>
 
-                    {/* Growth card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <MagicCard
-                            className="rounded-2xl border-border p-6 shadow-sm"
-                            gradientColor={magicColor}
-                        >
-                            <div className="text-sm text-muted-foreground font-medium">Monthly Savings</div>
-                            <div className="mt-2 text-3xl font-bold tracking-tight">₹24,500 <span className="text-sm font-medium text-muted-foreground align-middle">INR</span></div>
-                            <div className="mt-1 text-xs text-chart-2 font-medium flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3" />
-                                12% vs last month
-                            </div>
-                            <MiniBars />
-                        </MagicCard>
-                    </motion.div>
+  {/* Card 2 — Investment Management */}
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.15, duration: 0.5 }}
+  >
+    <MagicCard
+      className="h-full p-6 shadow-sm border-border"
+      gradientColor={magicColor}
+    >
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+        Investment Management
+      </span>
+      <p className="mt-3 text-sm text-foreground leading-relaxed">
+        Manage one-time and recurring investments, with a clear view of what’s
+        active and what’s already closed.
+      </p>
+    </MagicCard>
+  </motion.div>
 
-                    {/* Feature Highlight Card (New) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                    >
-                        <MagicCard
-                            className="rounded-2xl border-border p-6 flex flex-col justify-center items-center text-center"
-                            gradientColor={magicColor}
-                            style={{ minHeight: "200px" }}
-                        >
-                            <div className="w-12 h-12 bg-background rounded-full flex items-center justify-center shadow-sm mb-3 text-2xl">
-                                🚀
-                            </div>
-                            <h3 className="font-semibold text-foreground">Fast & Simple</h3>
-                            <p className="text-sm text-muted-foreground mt-2">Log expenses in seconds.</p>
-                        </MagicCard>
-                    </motion.div>
-                </div>
+  {/* Card 3 — Net Worth Overview */}
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.2, duration: 0.5 }}
+  >
+    <MagicCard
+      className="h-full p-6 shadow-sm border-border"
+      gradientColor={magicColor}
+    >
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+        Net Worth Overview
+      </span>
+      <p className="mt-3 text-sm text-foreground leading-relaxed">
+        Watch your net worth evolve as expenses, active investments, and
+        realized returns change over time.
+      </p>
+    </MagicCard>
+  </motion.div>
+
+  {/* Card 4 — History & Insights */}
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.25, duration: 0.5 }}
+  >
+    <MagicCard
+      className="h-full p-6 shadow-sm border-border"
+      gradientColor={magicColor}
+    >
+      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+        History & Insights
+      </span>
+      <p className="mt-3 text-sm text-foreground leading-relaxed">
+        Look back at past transactions and portfolio allocation to understand
+        long-term patterns, not just today’s numbers.
+      </p>
+    </MagicCard>
+  </motion.div>
+
+</div>
             </div>
 
             {/* Depth: Features Section */}
@@ -292,7 +267,7 @@ export default function MoneyflowLandingPage() {
             <section className="py-24">
                 <div className="mx-auto max-w-[900px] px-4 text-center">
                     <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-6">Ready to take control?</h2>
-                    <p className="text-lg text-muted-foreground mb-8">Join thousands of users who are already saving more and spending smarter with FinanceFlow.</p>
+                    <p className="text-lg text-muted-foreground mb-8">Build a clear view of your finances with expenses, investments, and reports in one place.</p>
                     <SoftButton onClick={() => window.location.href = '/register'} className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 text-base">
                         Create Free Account
                     </SoftButton>

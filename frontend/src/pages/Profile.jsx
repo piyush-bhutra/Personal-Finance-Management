@@ -1,0 +1,336 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { User, Shield, AlertTriangle, Wallet, Activity, CreditCard, ChevronRight, CheckCircle2, Settings, Server, LogOut, Sun, Moon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import expenseService from '../features/expenses/expenseService';
+import investmentService from '../features/investments/investmentService';
+
+const ProfilePage = () => {
+    const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('profile');
+    const [stats, setStats] = useState({
+        expensesCount: 0,
+        investmentsCount: 0,
+        activeInvestments: 0,
+        closedInvestments: 0,
+    });
+
+    useEffect(() => {
+        // 1. Get user identity from LocalStorage
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const userData = JSON.parse(userStr);
+                setUser(userData);
+            } catch (error) {
+                console.error('Failed to parse user data');
+            }
+        }
+
+        // 2. Fetch lightweight snapshot data
+        const fetchSnapshot = async () => {
+            try {
+                setLoading(true);
+                const [expenses, investments] = await Promise.all([
+                    expenseService.getExpenses(),
+                    investmentService.getInvestments()
+                ]);
+
+                const expCount = expenses ? expenses.length : 0;
+                const invCount = investments ? investments.length : 0;
+                const activeInv = investments ? investments.filter(i => i.status !== 'closed').length : 0;
+                const closedInv = invCount - activeInv;
+
+                setStats({
+                    expensesCount: expCount,
+                    investmentsCount: invCount,
+                    activeInvestments: activeInv,
+                    closedInvestments: closedInv,
+                });
+            } catch (error) {
+                console.error('Failed to fetch snapshot data', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSnapshot();
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        navigate('/login');
+    };
+
+    if (!user) {
+        return (
+            <div className="flex-1 flex items-center justify-center p-8">
+                <p className="text-muted-foreground">Loading account data...</p>
+            </div>
+        );
+    }
+
+    // Formatting Member Since (Month + Year only)
+    const memberSinceStr = user.createdAt
+        ? new Date(user.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' })
+        : 'Unknown Date';
+
+    const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'profile':
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {/* Account Identity */}
+                        <Card className="border-border/50 shadow-sm overflow-hidden">
+                            <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent"></div>
+                            <CardContent className="px-6 sm:px-10 pb-10 pt-0 relative">
+                                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end -mt-12 mb-6">
+                                    <div className="w-24 h-24 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold shadow-xl border-4 border-background">
+                                        {initial}
+                                    </div>
+                                    <div className="flex-1 space-y-1 pb-1">
+                                        <h2 className="text-2xl font-bold tracking-tight">{user.name}</h2>
+                                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                                            <span>{user.email}</span>
+                                            <span>•</span>
+                                            <span className="flex items-center gap-1 text-emerald-500">
+                                                <CheckCircle2 className="w-3 h-3" /> Active
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                                    <div className="space-y-1">
+                                        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Full Name</p>
+                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.name}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">This is how you appear internally.</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Email Address</p>
+                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.email}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">This email is used for login.</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Member Since</p>
+                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{memberSinceStr}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Financial Snapshot */}
+                        <Card className="border-border/50 shadow-sm">
+                            <CardHeader className="px-6 sm:px-10 pt-8">
+                                <CardTitle className="text-xl flex items-center gap-2">
+                                    <Activity className="w-5 h-5 text-primary" />
+                                    Financial Snapshot
+                                </CardTitle>
+                                <CardDescription>An overview of your tracked data.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="px-6 sm:px-10 pb-8">
+                                {loading ? (
+                                    <div className="py-8 text-center text-muted-foreground animate-pulse">Loading snapshot...</div>
+                                ) : (
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                                            <span className="text-muted-foreground text-sm flex items-center gap-2"><CreditCard className="w-4 h-4" /> Expenses</span>
+                                            <span className="text-2xl font-bold">{stats.expensesCount}</span>
+                                        </div>
+                                        <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                                            <span className="text-muted-foreground text-sm flex items-center gap-2"><Wallet className="w-4 h-4" /> Assets</span>
+                                            <span className="text-2xl font-bold">{stats.investmentsCount}</span>
+                                        </div>
+                                        <div className="bg-emerald-500/5 border border-emerald-500/20 p-4 rounded-xl flex flex-col gap-1">
+                                            <span className="text-emerald-500/80 text-sm flex items-center gap-2">Active</span>
+                                            <span className="text-2xl font-bold text-emerald-500">{stats.activeInvestments}</span>
+                                        </div>
+                                        <div className="bg-muted/30 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                                            <span className="text-muted-foreground text-sm flex items-center gap-2">Closed</span>
+                                            <span className="text-2xl font-bold opacity-70">{stats.closedInvestments}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                );
+            case 'settings':
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <Card className="border-border/50 shadow-sm">
+                            <CardHeader className="px-6 sm:px-10 pt-8">
+                                <CardTitle className="text-xl flex items-center gap-2">
+                                    <Settings className="w-5 h-5 text-primary" />
+                                    Account Preferences
+                                </CardTitle>
+                                <CardDescription>Your localized settings and preferences.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="px-6 sm:px-10 pb-8 grid gap-6">
+
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
+                                    <div>
+                                        <p className="font-medium">Currency</p>
+                                        <p className="text-sm text-muted-foreground">The primary currency applied to your portfolio.</p>
+                                    </div>
+                                    <div className="bg-background border border-border px-4 py-2 rounded-md text-sm font-medium">
+                                        ₹ INR
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
+                                    <div>
+                                        <p className="font-medium">Timezone</p>
+                                        <p className="text-sm text-muted-foreground">Used for entry dates and report aggregation.</p>
+                                    </div>
+                                    <div className="bg-background border border-border px-4 py-2 rounded-md text-sm font-medium">
+                                        Asia/Kolkata
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
+                                    <div>
+                                        <p className="font-medium">Theme</p>
+                                        <p className="text-sm text-muted-foreground">Your current active UI appearance.</p>
+                                    </div>
+                                    <div className="bg-background border border-border px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 capitalize">
+                                        {document.documentElement.classList.contains('light') ? (
+                                            <><Sun className="w-4 h-4" /> Light</>
+                                        ) : (
+                                            <><Moon className="w-4 h-4" /> Dark</>
+                                        )}
+                                    </div>
+                                </div>
+
+                            </CardContent>
+                        </Card>
+                    </div>
+                );
+            case 'privacy':
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <Card className="border-border/50 shadow-sm">
+                            <CardHeader className="px-6 sm:px-10 pt-8">
+                                <CardTitle className="text-xl flex items-center gap-2">
+                                    <Shield className="w-5 h-5 text-primary" />
+                                    Data & Privacy
+                                </CardTitle>
+                                <CardDescription>Manage how your information is stored and exported.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="px-6 sm:px-10 pb-8 space-y-6">
+                                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-3">
+                                    <Server className="w-5 h-5 shrink-0" />
+                                    <p>Your data is stored securely. We implement standard security protocols to protect your sensitive financial information.</p>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
+                                    <div>
+                                        <p className="font-medium">Export Data</p>
+                                        <p className="text-sm text-muted-foreground">Download a complete copy of all your tracked data.</p>
+                                    </div>
+                                    <Button variant="outline" disabled className="gap-2 shrink-0">
+                                        Coming Soon
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                );
+            case 'actions':
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <Card className="border-red-500/20 shadow-sm">
+                            <CardHeader className="px-6 sm:px-10 pt-8">
+                                <CardTitle className="text-xl flex items-center gap-2 text-red-500">
+                                    <AlertTriangle className="w-5 h-5" />
+                                    Account Actions
+                                </CardTitle>
+                                <CardDescription>Destructive actions and session management.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="px-6 sm:px-10 pb-8 space-y-6">
+
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/10 border border-border/50 rounded-xl gap-4">
+                                    <div>
+                                        <p className="font-medium">Log Out</p>
+                                        <p className="text-sm text-muted-foreground">Securely end your current session on this device.</p>
+                                    </div>
+                                    <Button variant="outline" onClick={handleLogout} className="gap-2 shrink-0">
+                                        <LogOut className="w-4 h-4" />
+                                        Logout
+                                    </Button>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-red-500/5 border border-red-500/20 rounded-xl gap-4">
+                                    <div>
+                                        <p className="font-medium text-red-600 dark:text-red-400">Delete Account</p>
+                                        <p className="text-sm text-red-600/70 dark:text-red-400/70">Permanently erase all your data. This cannot be reversed.</p>
+                                    </div>
+                                    <Button variant="destructive" disabled className="shrink-0">
+                                        Delete
+                                    </Button>
+                                </div>
+
+                            </CardContent>
+                        </Card>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
+    const NavButton = ({ id, label, icon: IconComponent, isDestructive = false }) => {
+        const isActive = activeTab === id;
+        return (
+            <button
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all w-full text-left
+          ${isActive && !isDestructive ? 'bg-secondary/80 text-secondary-foreground font-medium shadow-sm' : ''}
+          ${!isActive && !isDestructive ? 'text-muted-foreground hover:bg-secondary/40' : ''}
+          ${isDestructive && isActive ? 'bg-red-500/10 text-red-600 dark:text-red-400 font-medium' : ''}
+          ${isDestructive && !isActive ? 'text-red-500/70 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400' : ''}
+        `}
+            >
+                <IconComponent className={`w-5 h-5 ${isActive && !isDestructive ? 'text-primary' : ''}`} />
+                <div className="flex-1">{label}</div>
+                {isActive && !isDestructive && <ChevronRight className="w-4 h-4 opacity-50" />}
+            </button>
+        );
+    };
+
+    return (
+        <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+                <p className="text-muted-foreground mt-1">Manage your profile, preferences, and account actions.</p>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-8">
+                {/* Left Sidebar */}
+                <aside className="w-full md:w-64 shrink-0">
+                    <nav className="flex flex-col gap-2 sticky top-24">
+                        <NavButton id="profile" label="Profile" icon={User} />
+                        <NavButton id="settings" label="Settings" icon={Settings} />
+                        <NavButton id="privacy" label="Data & Privacy" icon={Shield} />
+
+                        <div className="my-2 border-t border-border/50"></div>
+
+                        <NavButton id="actions" label="Account Actions" icon={AlertTriangle} isDestructive />
+                    </nav>
+                </aside>
+
+                {/* Main Content Area */}
+                <div className="flex-1 min-w-0">
+                    {renderContent()}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ProfilePage;

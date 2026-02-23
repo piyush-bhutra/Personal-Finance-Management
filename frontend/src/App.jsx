@@ -12,6 +12,8 @@ import FeaturesPage from './pages/Features';
 import TransactionsPage from './pages/TransactionsPage';
 import ReportsPage from './pages/Reports';
 import AnalyticsPage from './pages/Analytics';
+import ProfilePage from './pages/Profile';
+import NotFound from './pages/NotFound';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -50,6 +52,10 @@ const App = () => {
           <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+
+          {/* Catch-all 404 Route */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
     </Router>

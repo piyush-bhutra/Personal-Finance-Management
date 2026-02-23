@@ -10,8 +10,19 @@ const { startOfMonth, monthsBetween } = require('../utils/calc');
 const getExpenses = asyncHandler(async (req, res) => {
     const plans = await ExpensePlan.find({ user: req.user.id, isActive: true });
 
-    const results = await Promise.all(plans.map(async (plan) => {
-        const entries = await ExpenseEntry.find({ plan: plan._id, isActive: true }).sort({ date: 1 });
+    const planIds = plans.map(p => p._id);
+    const allEntries = await ExpenseEntry.find({ plan: { $in: planIds }, isActive: true }).sort({ date: 1 });
+
+    const entriesByPlanId = {};
+    for (const entry of allEntries) {
+        if (!entriesByPlanId[entry.plan]) {
+            entriesByPlanId[entry.plan] = [];
+        }
+        entriesByPlanId[entry.plan].push(entry);
+    }
+
+    const results = plans.map((plan) => {
+        const entries = entriesByPlanId[plan._id] || [];
         const totalAmount = entries.reduce((acc, entry) => acc + entry.amount, 0);
 
         return {
@@ -19,7 +30,7 @@ const getExpenses = asyncHandler(async (req, res) => {
             entries,
             totalAmount
         };
-    }));
+    });
 
     res.status(200).json(results);
 });

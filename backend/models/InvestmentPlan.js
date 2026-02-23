@@ -11,6 +11,7 @@ const investmentPlanSchema = mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             required: true,
             ref: 'User',
+            index: true,
         },
         investmentMode: {
             type: String,

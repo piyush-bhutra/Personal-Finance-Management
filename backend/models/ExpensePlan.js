@@ -11,6 +11,7 @@ const expensePlanSchema = mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             required: true,
             ref: 'User',
+            index: true,
         },
         expenseMode: {
             type: String,

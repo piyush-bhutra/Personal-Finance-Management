@@ -41,15 +41,26 @@ const computePlanSummary = (plan, entries) => {
 const getInvestments = asyncHandler(async (req, res) => {
     const plans = await InvestmentPlan.find({ user: req.user.id, isActive: true });
 
-    const results = await Promise.all(plans.map(async (plan) => {
-        const entries = await InvestmentEntry.find({ plan: plan._id, isActive: true }).sort({ date: 1 });
+    const planIds = plans.map(p => p._id);
+    const allEntries = await InvestmentEntry.find({ plan: { $in: planIds }, isActive: true }).sort({ date: 1 });
+
+    const entriesByPlanId = {};
+    for (const entry of allEntries) {
+        if (!entriesByPlanId[entry.plan]) {
+            entriesByPlanId[entry.plan] = [];
+        }
+        entriesByPlanId[entry.plan].push(entry);
+    }
+
+    const results = plans.map((plan) => {
+        const entries = entriesByPlanId[plan._id] || [];
         const summary = computePlanSummary(plan, entries);
         return {
             ...plan.toObject(),
             ...summary,
             entries,
         };
-    }));
+    });
 
     res.status(200).json(results);
 });
@@ -61,15 +72,26 @@ const getInvestments = asyncHandler(async (req, res) => {
 const getInvestmentSummary = asyncHandler(async (req, res) => {
     const plans = await InvestmentPlan.find({ user: req.user.id, isActive: true });
 
+    const planIds = plans.map(p => p._id);
+    const allEntries = await InvestmentEntry.find({ plan: { $in: planIds }, isActive: true });
+
+    const entriesByPlanId = {};
+    for (const entry of allEntries) {
+        if (!entriesByPlanId[entry.plan]) {
+            entriesByPlanId[entry.plan] = [];
+        }
+        entriesByPlanId[entry.plan].push(entry);
+    }
+
     let totalInvested = 0;
     let currentValue = 0;
 
-    await Promise.all(plans.map(async (plan) => {
-        const entries = await InvestmentEntry.find({ plan: plan._id, isActive: true });
+    for (const plan of plans) {
+        const entries = entriesByPlanId[plan._id] || [];
         const summary = computePlanSummary(plan, entries);
         totalInvested += summary.totalInvested;
         currentValue += summary.currentValue;
-    }));
+    }
 
     res.status(200).json({
         totalInvested: Math.round(totalInvested),

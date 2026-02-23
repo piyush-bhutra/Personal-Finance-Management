@@ -19,37 +19,54 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
     const activePlans = await InvestmentPlan.find({ user: req.user.id, isActive: true });
     let activeValue = 0;
 
-    await Promise.all(activePlans.map(async (plan) => {
-        const entries = await InvestmentEntry.find({ plan: plan._id, isActive: true });
-        for (const entry of entries) {
+    if (activePlans.length > 0) {
+        const activePlanIds = activePlans.map(p => p._id);
+        const activeEntries = await InvestmentEntry.find({ plan: { $in: activePlanIds }, isActive: true });
+
+        // Build a map of plan details for quick lookup
+        const activePlanMap = {};
+        for (const p of activePlans) {
+            activePlanMap[p._id] = p;
+        }
+
+        for (const entry of activeEntries) {
+            const plan = activePlanMap[entry.plan];
+            if (!plan) continue;
             const entryMonth = startOfMonth(entry.date);
             const diffMs = new Date() - entryMonth;
             const ageMonths = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44)));
             activeValue += compoundValue(entry.amount, plan.expectedReturnRate, ageMonths);
         }
-    }));
+    }
 
     // 2. Calculate Realized Value from Inactive (Stopped) Plans
     // Assumption: Value is realized at the principal amount + growth up to today
     const inactivePlans = await InvestmentPlan.find({ user: req.user.id, status: 'closed' });
     let realizedValue = 0;
+    const legacyInactivePlanIds = [];
+    const inactivePlanMap = {};
 
-    await Promise.all(inactivePlans.map(async (plan) => {
+    for (const plan of inactivePlans) {
         // If plan has an explicit realized value (stopped/sold), use it
         if (plan.realizedValue !== undefined) {
             realizedValue += plan.realizedValue;
-            return;
+        } else {
+            legacyInactivePlanIds.push(plan._id);
+            inactivePlanMap[plan._id] = plan;
         }
+    }
 
-        // Fallback for legacy stopped plans (sum of inactive entries)
-        const entries = await InvestmentEntry.find({ plan: plan._id });
-        for (const entry of entries) {
+    if (legacyInactivePlanIds.length > 0) {
+        const legacyEntries = await InvestmentEntry.find({ plan: { $in: legacyInactivePlanIds } });
+        for (const entry of legacyEntries) {
+            const plan = inactivePlanMap[entry.plan];
+            if (!plan) continue;
             const entryMonth = startOfMonth(entry.date);
             const diffMs = new Date() - entryMonth;
             const ageMonths = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44)));
             realizedValue += compoundValue(entry.amount, plan.expectedReturnRate, ageMonths);
         }
-    }));
+    }
 
     // 3. Calculate Total Expenses
     const expenses = await ExpenseEntry.find({ user: req.user.id, isActive: true });

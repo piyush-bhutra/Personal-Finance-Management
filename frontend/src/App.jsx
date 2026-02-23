@@ -13,6 +13,7 @@ import TransactionsPage from './pages/TransactionsPage';
 import ReportsPage from './pages/Reports';
 import AnalyticsPage from './pages/Analytics';
 import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Layout wrapper that adds footer to every page
 const Layout = ({ children }) => {
@@ -34,18 +35,21 @@ const App = () => {
     <Router>
       <Layout>
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/expenses" element={<ExpensesPage />} />
-          <Route path="/investments" element={<InvestmentsPage />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
+
+          {/* Protected Routes */}
+          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/expenses" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
+          <Route path="/investments" element={<ProtectedRoute><InvestmentsPage /></ProtectedRoute>} />
+          <Route path="/transactions" element={<ProtectedRoute><TransactionsPage /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
         </Routes>
       </Layout>
     </Router>

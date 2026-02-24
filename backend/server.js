@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv').config();
 const connectDB = require('./config/db');
+const { errorHandler } = require('./middleware/errorMiddleware');
 const PORT = process.env.PORT || 5000;
 
 connectDB();
@@ -21,6 +22,9 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+
+// Central error handler (must be after routes)
+app.use(errorHandler);
 
 // Only listen if running directly (not imported as a module)
 if (require.main === module) {

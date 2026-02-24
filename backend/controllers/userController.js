@@ -75,15 +75,43 @@ const getMe = asyncHandler(async (req, res) => {
     res.status(200).json(req.user);
 });
 
-// Generate JWT
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d',
-    });
-};
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private
+const updateUserProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+        // Prevent email collisions if they are changing their email
+        if (req.body.email && req.body.email !== user.email) {
+            const emailExists = await User.findOne({ email: req.body.email });
+            if (emailExists) {
+                res.status(400);
+                throw new Error('Email is already in use by another account');
+            }
+        }
+
+        user.name = req.body.name || user.name;
+        user.email = req.body.email || user.email;
+        // updatedAt is automatically handled by Mongoose timestamps
+
+        const updatedUser = await user.save();
+
+        res.json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            token: generateToken(updatedUser._id), // Optionally re-issue token (good practice on identity changes)
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
 
 module.exports = {
     registerUser,
     loginUser,
     getMe,
+    updateUserProfile,
 };

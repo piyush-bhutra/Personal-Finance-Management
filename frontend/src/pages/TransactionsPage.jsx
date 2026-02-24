@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowUpDown, Calendar, Filter } from "lucide-react";
 import dashboardService from "../features/dashboard/dashboardService";
@@ -18,6 +18,8 @@ const TransactionsPage = () => {
     limit: 50,
     timeRange: "all",
   });
+
+  const debounceTimeout = useRef(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -53,7 +55,17 @@ const TransactionsPage = () => {
       }
     };
 
-    fetchTransactions();
+    // Debounce API calls when filters change
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(fetchTransactions, 300);
+
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
   }, [filters]);
 
   const handleFilterChange = (key, value) => {

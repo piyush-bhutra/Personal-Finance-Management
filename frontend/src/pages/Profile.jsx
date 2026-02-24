@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Shield, AlertTriangle, Wallet, Activity, CreditCard, ChevronRight, CheckCircle2, Settings, Server, LogOut, Sun, Moon } from 'lucide-react';
+import { User, Shield, AlertTriangle, Wallet, Activity, CreditCard, ChevronRight, CheckCircle2, Settings, Server, LogOut, Sun, Moon, Edit2, Loader2, X, Check } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import expenseService from '../features/expenses/expenseService';
 import investmentService from '../features/investments/investmentService';
+import authService from '../features/auth/authService';
 
 const ProfilePage = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('profile');
+
+    // Editing state
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [editForm, setEditForm] = useState({ name: '', email: '' });
+    const [editError, setEditError] = useState('');
+
     const [stats, setStats] = useState({
         expensesCount: 0,
         investmentsCount: 0,
@@ -25,7 +34,8 @@ const ProfilePage = () => {
             try {
                 const userData = JSON.parse(userStr);
                 setUser(userData);
-            } catch (error) {
+                setEditForm({ name: userData.name, email: userData.email });
+            } catch {
                 console.error('Failed to parse user data');
             }
         }
@@ -65,6 +75,50 @@ const ProfilePage = () => {
         navigate('/login');
     };
 
+    const handleEditChange = (e) => {
+        setEditForm({ ...editForm, [e.target.name]: e.target.value });
+        setEditError(''); // clear error on type
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditError('');
+        // Restore original values
+        if (user) setEditForm({ name: user.name, email: user.email });
+    };
+
+    const handleSaveProfile = async () => {
+        // Validation
+        if (!editForm.name || editForm.name.length < 2) {
+            setEditError('Name must be at least 2 characters.');
+            return;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!editForm.email || !emailRegex.test(editForm.email)) {
+            setEditError('Please enter a valid email address.');
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+            setEditError('');
+
+            // Only send what changed, or just send both
+            const updatedUser = await authService.updateProfile({
+                name: editForm.name,
+                email: editForm.email
+            });
+
+            setUser(updatedUser);
+            setIsEditing(false);
+        } catch (error) {
+            const message = (error.response && error.response.data && error.response.data.message) || error.message || 'Failed to update profile';
+            setEditError(message);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     if (!user) {
         return (
             <div className="flex-1 flex items-center justify-center p-8">
@@ -87,10 +141,17 @@ const ProfilePage = () => {
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         {/* Account Identity */}
                         <Card className="border-border/50 shadow-sm overflow-hidden">
-                            <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent"></div>
+                            <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent flex justify-end items-start p-4">
+                                {!isEditing && (
+                                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="gap-2 bg-background/50 hover:bg-background/80 backdrop-blur-sm">
+                                        <Edit2 className="w-4 h-4" />
+                                        Edit Profile
+                                    </Button>
+                                )}
+                            </div>
                             <CardContent className="px-6 sm:px-10 pb-10 pt-0 relative">
                                 <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end -mt-12 mb-6">
-                                    <div className="w-24 h-24 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold shadow-xl border-4 border-background">
+                                    <div className="w-24 h-24 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold shadow-xl border-4 border-background transition-colors">
                                         {initial}
                                     </div>
                                     <div className="flex-1 space-y-1 pb-1">
@@ -105,22 +166,62 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
 
+                                {editError && (
+                                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm flex items-center gap-2">
+                                        <AlertTriangle className="w-4 h-4 shrink-0" />
+                                        {editError}
+                                    </div>
+                                )}
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                                    <div className="space-y-1">
+                                    <div className="space-y-2">
                                         <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Full Name</p>
-                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.name}</p>
+                                        {isEditing ? (
+                                            <Input
+                                                name="name"
+                                                value={editForm.name}
+                                                onChange={handleEditChange}
+                                                disabled={isSaving}
+                                                className="bg-background"
+                                            />
+                                        ) : (
+                                            <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.name}</p>
+                                        )}
                                         <p className="text-xs text-muted-foreground mt-1">This is how you appear internally.</p>
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-2">
                                         <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Email Address</p>
-                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.email}</p>
+                                        {isEditing ? (
+                                            <Input
+                                                name="email"
+                                                type="email"
+                                                value={editForm.email}
+                                                onChange={handleEditChange}
+                                                disabled={isSaving}
+                                                className="bg-background"
+                                            />
+                                        ) : (
+                                            <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.email}</p>
+                                        )}
                                         <p className="text-xs text-muted-foreground mt-1">This email is used for login.</p>
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-1 md:col-span-2">
                                         <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Member Since</p>
-                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{memberSinceStr}</p>
+                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50 md:w-[calc(50%-12px)] opacity-80 cursor-not-allowed">{memberSinceStr}</p>
                                     </div>
                                 </div>
+
+                                {isEditing && (
+                                    <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-border/50">
+                                        <Button variant="outline" onClick={handleCancelEdit} disabled={isSaving} className="gap-2">
+                                            <X className="w-4 h-4" /> Cancel
+                                        </Button>
+                                        <Button onClick={handleSaveProfile} disabled={isSaving} className="gap-2">
+                                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                            {isSaving ? 'Saving...' : 'Save Changes'}
+                                        </Button>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -284,6 +385,7 @@ const ProfilePage = () => {
         }
     };
 
+    // eslint-disable-next-line no-unused-vars
     const NavButton = ({ id, label, icon: IconComponent, isDestructive = false }) => {
         const isActive = activeTab === id;
         return (

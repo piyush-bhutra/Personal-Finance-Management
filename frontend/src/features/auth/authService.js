@@ -28,10 +28,22 @@ const logout = () => {
     localStorage.removeItem('user');
 };
 
+const updateProfile = async (userData) => {
+    const response = await client.put(API_URL + 'profile', userData);
+
+    // Also update the local storage copy so the UI stays in sync permanently
+    if (response.data) {
+        localStorage.setItem('user', JSON.stringify(response.data));
+    }
+
+    return response.data;
+};
+
 const authService = {
     register,
     logout,
     login,
+    updateProfile,
 };
 
 export default authService;

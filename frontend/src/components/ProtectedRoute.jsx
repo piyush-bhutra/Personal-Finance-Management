@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
             if (user && user.token) {
                 isAuthenticated = true;
             }
-        } catch (e) {
+        } catch {
             // JSON parse error means invalid user state
             isAuthenticated = false;
         }

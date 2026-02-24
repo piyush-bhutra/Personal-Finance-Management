@@ -95,7 +95,10 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
 ───────────────────────────────────────────────────────────── */
 const getRecentTransactions = asyncHandler(async (req, res) => {
     const { type = 'all', sort = 'date', order = 'desc', limit = 50, from, to } = req.query;
-    const limitNum = Number(limit);
+
+    // Normalize and clamp limit to avoid unbounded responses
+    const rawLimit = Number.isNaN(Number(limit)) ? 50 : Number(limit);
+    const limitNum = Math.min(Math.max(rawLimit, 1), 200);
 
     // Build query filters
     const dateFilter = {};
@@ -190,9 +193,7 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
     });
 
     // 4. Limit
-    if (limitNum > 0) {
-        allTransactions = allTransactions.slice(0, limitNum);
-    }
+    allTransactions = allTransactions.slice(0, limitNum);
 
     res.status(200).json(allTransactions);
 });

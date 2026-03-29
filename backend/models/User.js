@@ -10,10 +10,18 @@ const userSchema = mongoose.Schema(
             type: String,
             required: [true, 'Please add an email'],
             unique: true,
+            trim: true,
+            lowercase: true,
         },
         password: {
             type: String,
             required: [true, 'Please add a password'],
+        },
+        resetPasswordToken: {
+            type: String,
+        },
+        resetPasswordExpires: {
+            type: Date,
         },
     },
     {

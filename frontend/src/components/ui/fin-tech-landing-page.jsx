@@ -1,281 +1,588 @@
-﻿import React from "react";
-import { motion as Motion } from "framer-motion";
-import { ShieldCheck, ArrowUpRight, CheckCircle2, PieChart, TrendingUp, Wallet, Users } from "lucide-react";
-import { ThemeToggle } from "./theme-toggle";
-import { MagicCard } from "./magic-card";
-import { useTheme } from "@/context/ThemeContext";
+import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
+import Navbar from "../Navbar";
+import {
+    PieChart,
+    TrendingUp,
+    Wallet,
+    ShieldCheck,
+    FileText,
+    Bell,
+    ArrowRight,
+    ArrowUpRight,
+    Users,
+    CheckCircle2,
+    BarChart3,
+} from "lucide-react";
 
-/** FinanceFlow Landing Page */
+/* ─── Scroll-reveal hook ─────────────────────────────────────────── */
+function useReveal() {
+    useEffect(() => {
+        const els = document.querySelectorAll(".ff-reveal");
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const Stat = ({ label, value }) => (
-    <div className="space-y-1">
-        <div className="text-3xl font-semibold tracking-tight text-foreground">{value}</div>
-        <div className="text-sm text-muted-foreground">{label}</div>
-    </div>
-);
-
-const SoftButton = ({ children, className = "", ...props }) => (
-    <button
-        className={
-            "rounded-full px-5 py-2.5 text-sm font-medium shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 " +
-            "focus:ring-primary " +
-            className
+        if (prefersReducedMotion) {
+            els.forEach((el) => el.classList.add("visible"));
+            return;
         }
-        {...props}
-    >
-        {children}
-    </button>
-);
 
-function MiniBars() {
-    return (
-        <div className="mt-6 flex h-36 items-end gap-4 rounded-xl bg-gradient-to-b from-secondary/50 to-background p-4 border border-border">
-            {[18, 48, 72, 96].map((h, i) => (
-                <Motion.div
-                    key={i}
-                    initial={{ height: 0, opacity: 0.6 }}
-                    animate={{ height: h }}
-                    transition={{ delay: 0.5 + i * 0.15, type: "spring" }}
-                    className="w-10 rounded-xl bg-chart-2 opacity-80 shadow-sm"
-                />
-            ))}
-        </div>
-    );
+        const obs = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((e) => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add("visible");
+                        obs.unobserve(e.target);
+                    }
+                });
+            },
+            { threshold: 0.12 }
+        );
+        els.forEach((el) => obs.observe(el));
+        return () => obs.disconnect();
+    }, []);
 }
 
-function Planet() {
+/* ─── Mini dashboard mockup ──────────────────────────────────────── */
+function DashboardMockup() {
+    const bars = [42, 65, 55, 80, 60, 90, 72];
+    const months = ["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb"];
+
     return (
-        <Motion.svg
-            initial={{ rotate: -8 }}
-            animate={{ rotate: 0 }}
-            transition={{ duration: 2, type: "spring" }}
-            width="220"
-            height="220"
-            viewBox="0 0 220 220"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <defs>
-                <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="hsl(var(--chart-1))" />
-                    <stop offset="100%" stopColor="hsl(var(--chart-4))" />
-                </linearGradient>
-            </defs>
-            <circle cx="110" cy="110" r="56" fill="url(#grad)" opacity="0.95" />
-            <circle cx="94" cy="98" r="10" fill="white" opacity="0.45" />
-            <circle cx="132" cy="126" r="8" fill="white" opacity="0.35" />
-            <Motion.ellipse
-                cx="110" cy="110" rx="100" ry="34" stroke="white" strokeOpacity="0.6" fill="none"
-                animate={{ strokeDashoffset: [200, 0] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} strokeDasharray="200 200"
-            />
-            <Motion.circle cx="210" cy="110" r="4" fill="white" animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 2.2, repeat: Infinity }} />
-        </Motion.svg>
-    );
-}
-
-const FeatureItem = ({ icon, title, description }) => (
-    <div className="p-6 rounded-2xl bg-card border border-border shadow-sm hover:shadow-md transition-all duration-300 group">
-        <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
-            {icon}
-        </div>
-        <h3 className="text-xl font-semibold mb-2 text-foreground">{title}</h3>
-        <p className="text-muted-foreground leading-relaxed">{description}</p>
-    </div>
-);
-
-export default function MoneyflowLandingPage() {
-    const { isDark } = useTheme();
-    const magicColor = isDark ? "#2d2d2d" : "#D9D9D955";
-    return (
-        <div className="min-h-screen w-full bg-background text-foreground font-sans">
-
-            {/* Top nav */}
-            <nav className="mx-auto flex w-full max-w-[1180px] items-center justify-between px-4 py-6 md:px-0 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-                <div className="flex items-center gap-3">
-                    <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground shadow">
-                        <PieChart className="h-5 w-5" />
-                    </div>
-                    <span className="text-xl font-semibold tracking-tight text-foreground">FinanceFlow</span>
+        <div className="ff-mockup-ring p-6 w-full max-w-md mx-auto">
+            {/* Top row */}
+            <div className="flex items-center justify-between mb-5">
+                <div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.72rem", color: "rgb(129,166,198)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                        Net Worth
+                    </p>
+                    <p style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: "1.75rem", color: "rgb(83,74,64)", lineHeight: 1.1, marginTop: "0.2rem" }}>
+                        ₹4,82,360
+                    </p>
                 </div>
-                <div className="hidden items-center gap-8 md:flex">
-                    {['Features', 'About', 'Support'].map((item) => (
-                        <a key={item} href={`/${item.toLowerCase()}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">{item}</a>
-                    ))}
+                <div style={{
+                    background: "rgba(170,205,220,0.22)",
+                    border: "1px solid rgba(170,205,220,0.35)",
+                    borderRadius: "6px",
+                    padding: "0.3rem 0.65rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.3rem"
+                }}>
+                    <TrendingUp size={13} color="rgb(170,205,220)" />
+                    <span style={{ color: "rgb(170,205,220)", fontSize: "0.78rem", fontWeight: 600 }}>+23.4%</span>
                 </div>
-                <div className="hidden gap-3 md:flex items-center">
-                    <ThemeToggle />
-                    <a href="/login" className="rounded-full px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors inline-block text-center pt-2.5 font-medium">Login</a>
-                    <SoftButton onClick={() => window.location.href = '/register'} className="bg-primary text-primary-foreground hover:opacity-90">Sign Up</SoftButton>
-                </div>
-            </nav>
-
-            {/* Hero area */}
-            <div className="relative z-10 mx-auto grid w-full max-w-[1180px] grid-cols-1 gap-12 px-4 pb-14 pt-10 md:grid-cols-2 md:px-0">
-                {/* Left: headline */}
-                <div className="flex flex-col justify-center space-y-8 pr-2">
-                    <div>
-                        <h1 className="text-5xl md:text-6xl font-bold leading-[1.05] tracking-tight text-foreground">
-                            Master your money
-                            <br />
-                            with clarity.
-                        </h1>
-                        <p className="mt-6 max-w-md text-lg text-muted-foreground">
-                            Track expenses, manage investments, and review net worth using your recorded transactions.
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <SoftButton onClick={() => window.location.href = '/register'} className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 text-base">
-                            Get Started <ArrowUpRight className="ml-1 inline h-5 w-5" />
-                        </SoftButton>
-                    </div>
-                </div>
-
-                {/* Right: concise capabilities */}
-                {/* Right-side hero cards */}
-<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-  {/* Card 1 â€” Expense Tracking */}
-  <Motion.div
-    initial={{ opacity: 0, y: 12 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.1, duration: 0.5 }}
-  >
-    <MagicCard
-      className="h-full p-6 shadow-sm border-border"
-      gradientColor={magicColor}
-    >
-      <span className="text-xs uppercase tracking-wide text-muted-foreground">
-        Expense Tracking
-      </span>
-      <p className="mt-3 text-sm text-foreground leading-relaxed">
-        Capture daily spending, group it by category, and clearly see where your
-        money actually goes.
-      </p>
-    </MagicCard>
-  </Motion.div>
-
-  {/* Card 2 â€” Investment Management */}
-  <Motion.div
-    initial={{ opacity: 0, y: 12 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.15, duration: 0.5 }}
-  >
-    <MagicCard
-      className="h-full p-6 shadow-sm border-border"
-      gradientColor={magicColor}
-    >
-      <span className="text-xs uppercase tracking-wide text-muted-foreground">
-        Investment Management
-      </span>
-      <p className="mt-3 text-sm text-foreground leading-relaxed">
-        Manage one-time and recurring investments, with a clear view of whatâ€™s
-        active and whatâ€™s already closed.
-      </p>
-    </MagicCard>
-  </Motion.div>
-
-  {/* Card 3 â€” Net Worth Overview */}
-  <Motion.div
-    initial={{ opacity: 0, y: 12 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.2, duration: 0.5 }}
-  >
-    <MagicCard
-      className="h-full p-6 shadow-sm border-border"
-      gradientColor={magicColor}
-    >
-      <span className="text-xs uppercase tracking-wide text-muted-foreground">
-        Net Worth Overview
-      </span>
-      <p className="mt-3 text-sm text-foreground leading-relaxed">
-        Watch your net worth evolve as expenses, active investments, and
-        realized returns change over time.
-      </p>
-    </MagicCard>
-  </Motion.div>
-
-  {/* Card 4 â€” History & Insights */}
-  <Motion.div
-    initial={{ opacity: 0, y: 12 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.25, duration: 0.5 }}
-  >
-    <MagicCard
-      className="h-full p-6 shadow-sm border-border"
-      gradientColor={magicColor}
-    >
-      <span className="text-xs uppercase tracking-wide text-muted-foreground">
-        History & Insights
-      </span>
-      <p className="mt-3 text-sm text-foreground leading-relaxed">
-        Look back at past transactions and portfolio allocation to understand
-        long-term patterns, not just todayâ€™s numbers.
-      </p>
-    </MagicCard>
-  </Motion.div>
-
-</div>
             </div>
 
-            {/* Depth: Features Section */}
-            <section className="py-24 bg-muted/30 border-t border-border/50">
-                <div className="mx-auto max-w-[1180px] px-4 md:px-0">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">Everything you need to grow wealth</h2>
-                        <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-                            We provide the tools you need to take control of your financial future, all in one place.
-                        </p>
+            {/* Bar chart */}
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "0.45rem", height: "90px" }}>
+                {bars.map((h, i) => (
+                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem" }}>
+                        <div
+                            style={{
+                                width: "100%",
+                                height: `${h}%`,
+                                background: i === 5
+                                    ? "linear-gradient(180deg, rgb(129,166,198) 0%, rgb(129,166,198) 100%)"
+                                    : "rgba(129,166,198,0.22)",
+                                borderRadius: "4px 4px 0 0",
+                                transformOrigin: "bottom",
+                                animation: `ff-bar-grow 0.6s ${i * 0.07}s ease-out both`,
+                            }}
+                        />
+                        <span style={{ fontSize: "0.6rem", color: "rgb(129,166,198)", fontFamily: "'DM Sans', sans-serif" }}>{months[i]}</span>
                     </div>
+                ))}
+            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <FeatureItem
-                            icon={<PieChart className="w-6 h-6 text-primary" />}
-                            title="Expense Tracking"
-                            description="Automatically categorize your spending to see exactly where your money goes each month."
-                        />
-                        <FeatureItem
-                            icon={<Wallet className="w-6 h-6 text-primary" />}
-                            title="Smart Budgeting"
-                            description="Set realistic budgets for different categories and get notified when you're close to limits."
-                        />
-                        <FeatureItem
-                            icon={<TrendingUp className="w-6 h-6 text-primary" />}
-                            title="Goal Setting"
-                            description="Create savings goals for vacations, emergencies, or large purchases and track your progress."
-                        />
-                        <FeatureItem
-                            icon={<ShieldCheck className="w-6 h-6 text-primary" />}
-                            title="Bank-Grade Security"
-                            description="Your data is encrypted and secure. We never store your banking credentials."
-                        />
-                        <FeatureItem
-                            icon={<Users className="w-6 h-6 text-primary" />}
-                            title="Family Sharing"
-                            description="Manage household finances together. Share budgets and track expenses with your partner."
-                        />
-                        <FeatureItem
-                            icon={<CheckCircle2 className="w-6 h-6 text-primary" />}
-                            title="Export & Reports"
-                            description="Generate detailed PDF and CSV reports for tax season or personal analysis."
-                        />
+            {/* Bottom stats row */}
+            <div style={{ display: "flex", gap: "0", marginTop: "1.25rem", borderTop: "1px solid rgba(129,166,198,0.22)", paddingTop: "1rem" }}>
+                {[
+                    { label: "Expenses", value: "₹38,240", color: "rgb(129,166,198)" },
+                    { label: "Savings", value: "₹22,800", color: "rgb(170,205,220)" },
+                    { label: "Invested", value: "₹1,20,000", color: "rgb(129,166,198)" },
+                ].map((s, i) => (
+                    <div key={i} style={{
+                        flex: 1,
+                        paddingRight: i < 2 ? "1rem" : 0,
+                        paddingLeft: i > 0 ? "1rem" : 0,
+                        borderRight: i < 2 ? "1px solid rgba(129,166,198,0.22)" : "none"
+                    }}>
+                        <p style={{ fontSize: "0.68rem", color: "rgb(129,166,198)", fontFamily: "'DM Sans', sans-serif", marginBottom: "0.2rem" }}>{s.label}</p>
+                        <p style={{ fontSize: "0.9rem", fontWeight: 600, color: s.color, fontFamily: "'DM Sans', sans-serif" }}>{s.value}</p>
                     </div>
-                </div>
-            </section>
-
-            {/* Call to Action Section */}
-            <section className="py-24">
-                <div className="mx-auto max-w-[900px] px-4 text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-6">Ready to take control?</h2>
-                    <p className="text-lg text-muted-foreground mb-8">Build a clear view of your finances with expenses, investments, and reports in one place.</p>
-                    <SoftButton onClick={() => window.location.href = '/register'} className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 text-base">
-                        Create Free Account
-                    </SoftButton>
-                </div>
-            </section>
-
+                ))}
+            </div>
         </div>
     );
 }
 
+/* ─── Feature card ───────────────────────────────────────────────── */
+function FeatureCard({ icon, title, description }) {
+    return (
+        <div className="ff-card ff-reveal">
+            <div className="ff-icon-wrap mb-4">{icon}</div>
+            <h3 style={{
+                fontFamily: "'DM Serif Display', Georgia, serif",
+                fontSize: "1.15rem",
+                color: "rgb(83,74,64)",
+                marginBottom: "0.6rem",
+                lineHeight: 1.25
+            }}>{title}</h3>
+            <p style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: "0.875rem",
+                color: "rgb(129,166,198)",
+                lineHeight: 1.7
+            }}>{description}</p>
+        </div>
+    );
+}
+
+/* ─── Stat item ──────────────────────────────────────────────────── */
+function StatItem({ value, label, icon }) {
+    return (
+        <div className="ff-reveal ff-stat-block" style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            flex: 1,
+            padding: "1.5rem 2rem",
+        }}>
+            <div className="ff-icon-wrap" style={{ width: "2.75rem", height: "2.75rem" }}>{icon}</div>
+            <div>
+                <div style={{
+                    fontFamily: "'DM Serif Display', Georgia, serif",
+                    fontSize: "1.65rem",
+                    color: "rgb(83,74,64)",
+                    lineHeight: 1.1,
+                    marginBottom: "0.2rem"
+                }}>{value}</div>
+                <div style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: "0.78rem",
+                    color: "rgb(129,166,198)"
+                }}>{label}</div>
+            </div>
+        </div>
+    );
+}
+
+/* ─── Step item ──────────────────────────────────────────────────── */
+function StepItem({ number, title, description }) {
+    return (
+        <div className="ff-reveal" style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+        }}>
+            <div className="ff-step-number">{number}</div>
+            <h3 style={{
+                fontFamily: "'DM Serif Display', Georgia, serif",
+                fontSize: "1.15rem",
+                color: "rgb(83,74,64)",
+                lineHeight: 1.25
+            }}>{title}</h3>
+            <p style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: "0.875rem",
+                color: "rgb(129,166,198)",
+                lineHeight: 1.7
+            }}>{description}</p>
+        </div>
+    );
+}
+
+/* ─── Testimonial card ───────────────────────────────────────────── */
+function TestimonialCard({ quote, name, role, initial }) {
+    return (
+        <div className="ff-testimonial ff-reveal">
+            {/* Quote mark */}
+            <div style={{
+                fontFamily: "'DM Serif Display', Georgia, serif",
+                fontSize: "3rem",
+                color: "rgba(129,166,198,0.45)",
+                lineHeight: 1,
+                marginBottom: "0.5rem",
+                marginTop: "-0.5rem"
+            }}>"</div>
+            <p style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: "0.9rem",
+                color: "rgb(83,74,64)",
+                lineHeight: 1.75,
+                marginBottom: "1.25rem",
+                fontStyle: "italic"
+            }}>{quote}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <div style={{
+                    width: "2.25rem",
+                    height: "2.25rem",
+                    borderRadius: "50%",
+                    background: "rgba(129,166,198,0.18)",
+                    border: "1px solid rgba(129,166,198,0.45)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "rgb(129,166,198)",
+                    fontWeight: 600,
+                    fontSize: "0.85rem",
+                    fontFamily: "'DM Sans', sans-serif"
+                }}>{initial}</div>
+                <div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", fontWeight: 600, color: "rgb(83,74,64)" }}>{name}</div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", color: "rgb(129,166,198)" }}>{role}</div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* ─── Main landing page ──────────────────────────────────────────── */
+export default function FinanceFlowLandingPage() {
+    useReveal();
+
+    return (
+        <div style={{ minHeight: "100vh", background: "rgb(243,227,208)", color: "rgb(83,74,64)", overflowX: "hidden" }}>
+
+            {/* ══ NAVBAR ══════════════════════════════════════════════════ */}
+            <Navbar />
+
+            {/* ══ HERO ════════════════════════════════════════════════════ */}
+            <section style={{ padding: "6rem 1.5rem 5rem" }}>
+                <div style={{
+                    maxWidth: "1180px",
+                    margin: "0 auto",
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "4rem",
+                    alignItems: "center",
+                }}
+                    className="hero-grid"
+                >
+                    {/* Left */}
+                    <div style={{ animation: "ff-fade-up 0.6s ease both" }}>
+                        <div className="ff-label" style={{ marginBottom: "1.25rem" }}>
+                            Personal Finance, Simplified
+                        </div>
+                        <h1 style={{
+                            fontFamily: "'DM Serif Display', Georgia, serif",
+                            fontSize: "clamp(2.6rem, 5vw, 3.75rem)",
+                            color: "rgb(83,74,64)",
+                            lineHeight: 1.08,
+                            letterSpacing: "-0.02em",
+                            marginBottom: "1.5rem",
+                        }}>
+                            Clarity over<br />
+                            your finances,<br />
+                            <span style={{ color: "rgb(129,166,198)" }}>every day.</span>
+                        </h1>
+                        <p style={{
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontSize: "1.05rem",
+                            color: "rgb(129,166,198)",
+                            lineHeight: 1.75,
+                            maxWidth: "420px",
+                            marginBottom: "2.25rem",
+                        }}>
+                            Track spending, manage investments, and build wealth — all from one calm, focused dashboard built for everyday people.
+                        </p>
+                        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                            <Link to="/register" className="ff-btn-accent" id="hero-get-started-btn" style={{ padding: "0.75rem 1.75rem", fontSize: "0.95rem" }}>
+                                Get Started — Free <ArrowUpRight size={16} />
+                            </Link>
+                            <Link to="/about" className="ff-btn-ghost" style={{ padding: "0.75rem 1.35rem", fontSize: "0.95rem" }}>
+                                Learn more
+                            </Link>
+                        </div>
+                        <p style={{
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontSize: "0.78rem",
+                            color: "rgb(129,166,198)",
+                            marginTop: "1.25rem",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.4rem",
+                        }}>
+                            <ShieldCheck size={13} color="rgb(170,205,220)" /> No credit card required. Bank-grade encryption.
+                        </p>
+                    </div>
+
+                    {/* Right — dashboard mockup */}
+                    <div style={{
+                        animation: "ff-fade-up 0.7s 0.15s ease both",
+                        display: "flex",
+                        justifyContent: "center"
+                    }}>
+                        <DashboardMockup />
+                    </div>
+                </div>
+            </section>
+
+            {/* ══ STATS STRIP ════════════════════════════════════════════ */}
+            <section style={{
+                borderTop: "1px solid rgba(129,166,198,0.22)",
+                borderBottom: "1px solid rgba(129,166,198,0.22)",
+                background: "rgba(210,196,180,0.6)",
+            }}>
+                <div style={{
+                    maxWidth: "1180px",
+                    margin: "0 auto",
+                    padding: "0 1.5rem",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 0,
+                    position: "relative",
+                }}>
+                    {/* Vertical dividers between stats */}
+                    <div style={{ position: "absolute", top: 0, bottom: 0, left: "25%", width: "1px", background: "rgba(129,166,198,0.22)" }} className="hidden md:block" />
+                    <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "1px", background: "rgba(129,166,198,0.22)" }} className="hidden md:block" />
+                    <div style={{ position: "absolute", top: 0, bottom: 0, left: "75%", width: "1px", background: "rgba(129,166,198,0.22)" }} className="hidden md:block" />
+
+                    <StatItem value="10,000+" label="Active users managing budgets" icon={<Users size={16} />} />
+                    <StatItem value="₹2.4Cr+" label="Total savings tracked" icon={<Wallet size={16} />} />
+                    <StatItem value="23%" label="Average savings growth reported" icon={<TrendingUp size={16} />} />
+                    <StatItem value="99.9%" label="Platform uptime guarantee" icon={<ShieldCheck size={16} />} />
+                </div>
+            </section>
+
+            {/* ══ FEATURES ════════════════════════════════════════════════ */}
+            <section style={{ padding: "6rem 1.5rem" }}>
+                <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
+                    <div className="ff-reveal" style={{ maxWidth: "560px", marginBottom: "3.5rem" }}>
+                        <div className="ff-label" style={{ marginBottom: "0.85rem" }}>What you get</div>
+                        <h2 style={{
+                            fontFamily: "'DM Serif Display', Georgia, serif",
+                            fontSize: "clamp(2rem, 3.5vw, 2.75rem)",
+                            color: "rgb(83,74,64)",
+                            lineHeight: 1.12,
+                            marginBottom: "1rem",
+                        }}>
+                            Everything you need to manage your money
+                        </h2>
+                        <p style={{
+                            fontFamily: "'DM Sans', sans-serif",
+                            fontSize: "0.95rem",
+                            color: "rgb(129,166,198)",
+                            lineHeight: 1.75
+                        }}>
+                            Built around how real people actually think about money — not how banks do.
+                        </p>
+                    </div>
+
+                    <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, 1fr)",
+                        gap: "1.25rem",
+                    }} className="features-grid">
+                        <FeatureCard
+                            icon={<PieChart size={17} />}
+                            title="Expense Tracking"
+                            description="Categorize daily spending automatically and see exactly where every rupee goes — weekly, monthly, or by category."
+                        />
+                        <FeatureCard
+                            icon={<Wallet size={17} />}
+                            title="Smart Budgeting"
+                            description="Set realistic budgets per category and receive clear warnings before you overspend — no surprises at month end."
+                        />
+                        <FeatureCard
+                            icon={<TrendingUp size={17} />}
+                            title="Investment Management"
+                            description="Track one-time and recurring investments. Monitor active positions and visualize realized returns over time."
+                        />
+                        <FeatureCard
+                            icon={<BarChart3 size={17} />}
+                            title="Net Worth Overview"
+                            description="Watch your net worth evolve as expenses, investments, and returns shift. One clear number. Always current."
+                        />
+                        <FeatureCard
+                            icon={<FileText size={17} />}
+                            title="Reports & Exports"
+                            description="Generate detailed PDF and CSV reports for tax season, personal reviews, or sharing with a financial advisor."
+                        />
+                        <FeatureCard
+                            icon={<ShieldCheck size={17} />}
+                            title="Bank-Grade Security"
+                            description="Your data is encrypted end-to-end. We never store banking credentials and comply with the highest security standards."
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* ══ HOW IT WORKS ════════════════════════════════════════════ */}
+            <section style={{
+                padding: "6rem 1.5rem",
+                background: "rgba(210,196,180,0.45)",
+                borderTop: "1px solid rgba(129,166,198,0.22)",
+                borderBottom: "1px solid rgba(129,166,198,0.22)",
+            }}>
+                <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
+                    <div className="ff-reveal" style={{ textAlign: "center", marginBottom: "4rem" }}>
+                        <div className="ff-label" style={{ marginBottom: "0.85rem" }}>How it works</div>
+                        <h2 style={{
+                            fontFamily: "'DM Serif Display', Georgia, serif",
+                            fontSize: "clamp(2rem, 3.5vw, 2.65rem)",
+                            color: "rgb(83,74,64)",
+                            lineHeight: 1.12,
+                        }}>
+                            Up and running in minutes
+                        </h2>
+                    </div>
+
+                    <div style={{
+                        display: "flex",
+                        gap: "3rem",
+                        alignItems: "flex-start",
+                        flexWrap: "wrap",
+                    }}>
+                        {/* Connector line between steps (decorative) */}
+                        <StepItem
+                            number="01"
+                            title="Create your account"
+                            description="Sign up in under a minute. No credit card, no bank login required — just your email and a password."
+                        />
+                        <div style={{
+                            height: "1px",
+                            flex: "0 0 3rem",
+                            background: "rgba(129,166,198,0.2)",
+                            marginTop: "1.1rem",
+                            alignSelf: "flex-start"
+                        }} className="hidden md:block" />
+                        <StepItem
+                            number="02"
+                            title="Log your transactions"
+                            description="Add expenses, income, and investments manually or import them. Categorize and annotate with ease."
+                        />
+                        <div style={{
+                            height: "1px",
+                            flex: "0 0 3rem",
+                            background: "rgba(129,166,198,0.2)",
+                            marginTop: "1.1rem",
+                            alignSelf: "flex-start"
+                        }} className="hidden md:block" />
+                        <StepItem
+                            number="03"
+                            title="See the full picture"
+                            description="Your dashboard updates in real time — track net worth, savings rate, and spending patterns across every period."
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* ══ TESTIMONIALS ════════════════════════════════════════════ */}
+            <section style={{ padding: "6rem 1.5rem" }}>
+                <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
+                    <div className="ff-reveal" style={{ textAlign: "center", marginBottom: "3.5rem" }}>
+                        <div className="ff-label" style={{ marginBottom: "0.85rem" }}>From our users</div>
+                        <h2 style={{
+                            fontFamily: "'DM Serif Display', Georgia, serif",
+                            fontSize: "clamp(2rem, 3.5vw, 2.65rem)",
+                            color: "rgb(83,74,64)",
+                            lineHeight: 1.12,
+                        }}>
+                            Trusted by people who take money seriously
+                        </h2>
+                    </div>
+
+                    <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, 1fr)",
+                        gap: "1.25rem",
+                    }} className="testimonials-grid">
+                        <TestimonialCard
+                            quote="Finally a finance app that doesn't overwhelm you. The dashboard is clean and I actually check it every day now."
+                            name="Priya Mehta"
+                            role="Freelance Designer, Mumbai"
+                            initial="P"
+                        />
+                        <TestimonialCard
+                            quote="I've tried every budgeting app out there. FinanceFlow is the only one that made my savings habits stick — the reports are brilliant."
+                            name="Arjun Sharma"
+                            role="Software Engineer, Bengaluru"
+                            initial="A"
+                        />
+                        <TestimonialCard
+                            quote="The investment tracking is exactly what I was looking for. Simple, no clutter, and the net worth view is genuinely motivating."
+                            name="Kavya Nair"
+                            role="Product Manager, Hyderabad"
+                            initial="K"
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* ══ CTA BANNER ══════════════════════════════════════════════ */}
+            <section className="ff-cta-banner ff-reveal" style={{ padding: "6rem 1.5rem" }}>
+                <div style={{
+                    maxWidth: "720px",
+                    margin: "0 auto",
+                    textAlign: "center",
+                }}>
+                    <div className="ff-label" style={{ marginBottom: "1.25rem" }}>Start today</div>
+                    <h2 style={{
+                        fontFamily: "'DM Serif Display', Georgia, serif",
+                        fontSize: "clamp(2.25rem, 4vw, 3.25rem)",
+                        color: "rgb(83,74,64)",
+                        lineHeight: 1.1,
+                        marginBottom: "1.25rem",
+                        letterSpacing: "-0.02em",
+                    }}>
+                        Take control of your financial future
+                    </h2>
+                    <p style={{
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: "1rem",
+                        color: "rgb(129,166,198)",
+                        lineHeight: 1.75,
+                        marginBottom: "2.25rem",
+                        maxWidth: "460px",
+                        margin: "0 auto 2.25rem",
+                    }}>
+                        Join over 10,000 users who use FinanceFlow to build clarity, reduce anxiety around money, and grow consistently.
+                    </p>
+                    <Link
+                        to="/register"
+                        id="cta-banner-btn"
+                        className="ff-btn-accent"
+                        style={{ padding: "0.85rem 2.25rem", fontSize: "1rem", fontWeight: 500, display: "inline-flex" }}
+                    >
+                        Create Free Account <ArrowRight size={17} style={{ marginLeft: "0.35rem" }} />
+                    </Link>
+                    <p style={{
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: "0.78rem",
+                        color: "rgb(129,166,198)",
+                        marginTop: "1.1rem",
+                    }}>
+                        No credit card required
+                    </p>
+                </div>
+            </section>
+
+            {/* Responsive grid fix via style tag */}
+            <style>{`
+                @media (max-width: 768px) {
+                    .hero-grid {
+                        grid-template-columns: 1fr !important;
+                        gap: 2.5rem !important;
+                    }
+                    .features-grid {
+                        grid-template-columns: 1fr !important;
+                    }
+                    .testimonials-grid {
+                        grid-template-columns: 1fr !important;
+                    }
+                    .ff-stat-block {
+                        flex: 0 0 50%;
+                    }
+                }
+                @media (max-width: 480px) {
+                    .ff-stat-block {
+                        flex: 0 0 100%;
+                    }
+                }
+            `}</style>
+        </div>
+    );
+}
 

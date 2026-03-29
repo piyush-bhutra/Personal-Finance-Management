@@ -1,77 +1,93 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 90%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
+    /* FinanceFlow Warm Palette Design System */
+    --background: 32 60% 88%; /* #F3E3D0 warm cream */
+    --foreground: 25 30% 12%; /* #2A1F15 dark warm */
+    --card: 36 55% 95%; /* #FDF8F0 lighter cream */
+    --card-foreground: 25 30% 12%;
+    --popover: 36 55% 95%;
+    --popover-foreground: 25 30% 12%;
+    --primary: 208 38% 64%; /* #81A6C6 steel blue */
+    --primary-foreground: 36 55% 96%;
+    --secondary: 32 25% 76%; /* #D2C4B4 warm taupe */
+    --secondary-foreground: 25 30% 12%;
+    --muted: 32 20% 84%;
+    --muted-foreground: 25 15% 42%; /* #7A6A5A muted warm */
+    --accent: 198 42% 77%; /* #AACDDC light sky blue */
+    --accent-foreground: 25 30% 12%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 36 55% 96%;
+    --border: 32 22% 76%;
+    --input: 32 25% 82%;
+    --ring: 208 38% 64%;
+    --radius: 0.75rem;
+    --chart-1: 208 38% 64%;
+    --chart-2: 198 42% 77%;
+    --chart-3: 25 15% 40%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --sidebar: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar: 36 55% 92%;
+    --sidebar-foreground: 25 30% 12%;
+    --sidebar-primary: 208 38% 64%;
+    --sidebar-primary-foreground: 36 55% 96%;
+    --sidebar-accent: 32 25% 82%;
+    --sidebar-accent-foreground: 25 30% 12%;
+    --sidebar-border: 32 22% 76%;
+    --sidebar-ring: 208 38% 64%;
+
+    /* FinanceFlow custom tokens */
+    --ff-bg: rgb(243, 227, 208);
+    --ff-surface: rgb(210, 196, 180);
+    --ff-card: rgb(243, 227, 208);
+    --ff-taupe: rgb(210, 196, 180);
+    --ff-text-primary: rgb(129, 166, 198);
+    --ff-text-secondary: rgb(129, 166, 198);
+    --ff-text-muted: rgb(210, 196, 180);
+    --ff-accent-blue: rgb(129, 166, 198);
+    --ff-accent-light: rgb(170, 205, 220);
+    --ff-border: rgba(129, 166, 198, 0.3);
   }
 
+  /* Keep .dark as an alias — same warm light theme */
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 32 60% 88%;
+    --foreground: 25 30% 12%;
+    --card: 36 55% 95%;
+    --card-foreground: 25 30% 12%;
+    --popover: 36 55% 95%;
+    --popover-foreground: 25 30% 12%;
+    --primary: 208 38% 64%;
+    --primary-foreground: 36 55% 96%;
+    --secondary: 32 25% 76%;
+    --secondary-foreground: 25 30% 12%;
+    --muted: 32 20% 84%;
+    --muted-foreground: 25 15% 42%;
+    --accent: 198 42% 77%;
+    --accent-foreground: 25 30% 12%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 36 55% 96%;
+    --border: 32 22% 76%;
+    --input: 32 25% 82%;
+    --ring: 208 38% 64%;
+    --chart-1: 208 38% 64%;
+    --chart-2: 198 42% 77%;
+    --chart-3: 25 15% 40%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --sidebar: 36 55% 92%;
+    --sidebar-foreground: 25 30% 12%;
+    --sidebar-primary: 208 38% 64%;
+    --sidebar-primary-foreground: 36 55% 96%;
+    --sidebar-accent: 32 25% 82%;
+    --sidebar-accent-foreground: 25 30% 12%;
+    --sidebar-border: 32 22% 76%;
+    --sidebar-ring: 208 38% 64%;
   }
 }
 
@@ -80,40 +96,259 @@
     border-color: hsl(var(--border));
   }
 
-  body {
-    @apply bg-background text-foreground;
+  html {
+    scroll-behavior: smooth;
   }
 
-  /* Make the native date/month picker icon theme-aware */
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "DM Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: rgb(243, 227, 208);
+    overflow-x: hidden;
+  }
+
+  img,
+  svg,
+  video,
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(129, 166, 198, 0.7);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: "DM Serif Display", Georgia, serif;
+  }
+
+  /* Date picker theme */
   input[type="date"],
   input[type="month"] {
     color-scheme: light;
   }
 
-  .dark input[type="date"],
-  .dark input[type="month"] {
-    color-scheme: dark;
-  }
-
   input[type="date"]::-webkit-calendar-picker-indicator,
   input[type="month"]::-webkit-calendar-picker-indicator {
-    opacity: 0.6;
-    cursor: pointer;
-  }
-
-  .dark input[type="date"]::-webkit-calendar-picker-indicator,
-  .dark input[type="month"]::-webkit-calendar-picker-indicator {
-    opacity: 0.7;
+    opacity: 0.5;
     cursor: pointer;
   }
 }
 
-/* Animations */
+.ff-no-scroll {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* ===================== FINANCEFLOW LANDING DESIGN ===================== */
+
+/* Fade in + slide up on scroll */
+.ff-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.ff-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Accent button */
+.ff-btn-accent {
+  background-color: var(--ff-accent-blue);
+  color: rgb(243, 227, 208);
+  border-radius: 6px;
+  padding: 0.65rem 1.5rem;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  border: none;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+}
+
+.ff-btn-accent:hover {
+  background-color: rgb(170, 205, 220);
+  box-shadow: 0 0 0 3px rgba(129, 166, 198, 0.3);
+}
+
+/* Ghost/outline button */
+.ff-btn-ghost {
+  background: transparent;
+  color: var(--ff-text-secondary);
+  border: 1px solid rgba(129, 166, 198, 0.45);
+  border-radius: 6px;
+  padding: 0.65rem 1.25rem;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ff-btn-ghost:hover {
+  background: rgba(129, 166, 198, 0.12);
+  border-color: rgba(129, 166, 198, 0.65);
+  color: var(--ff-text-primary);
+}
+
+/* Feature card */
+.ff-card {
+  background: rgb(243, 227, 208);
+  border: 1px solid rgba(210, 196, 180, 0.75);
+  border-radius: 12px;
+  padding: 1.75rem;
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.ff-card:hover {
+  box-shadow: 0 6px 28px rgba(129, 166, 198, 0.2);
+  border-color: rgba(129, 166, 198, 0.45);
+}
+
+/* Stat card */
+.ff-stat-item {
+  padding: 1.5rem 2rem;
+  border-right: 1px solid rgba(129, 166, 198, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.ff-stat-item:last-child {
+  border-right: none;
+}
+
+/* Step number badge */
+.ff-step-number {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: rgba(129, 166, 198, 0.14);
+  border: 1px solid rgba(129, 166, 198, 0.4);
+  color: var(--ff-accent-blue);
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: "DM Sans", sans-serif;
+}
+
+/* Testimonial card */
+.ff-testimonial {
+  background: rgb(243, 227, 208);
+  border: 1px solid rgba(210, 196, 180, 0.75);
+  border-radius: 12px;
+  padding: 1.75rem;
+  transition: box-shadow 0.25s ease;
+}
+
+.ff-testimonial:hover {
+  box-shadow: 0 6px 28px rgba(129, 166, 198, 0.18);
+}
+
+/* Section heading in serif */
+.ff-heading {
+  font-family: "DM Serif Display", Georgia, serif;
+  color: rgb(129, 166, 198);
+  line-height: 1.1;
+}
+
+/* Muted label */
+.ff-label {
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ff-accent-blue);
+  font-weight: 600;
+}
+
+/* Icon wrapper */
+.ff-icon-wrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  background: rgba(129, 166, 198, 0.14);
+  border: 1px solid rgba(129, 166, 198, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ff-accent-blue);
+  flex-shrink: 0;
+}
+
+/* CTA Banner gradient */
+.ff-cta-banner {
+  background: linear-gradient(135deg, rgb(243, 227, 208) 0%, rgb(210, 196, 180) 50%, rgb(170, 205, 220) 100%);
+  border-top: 1px solid rgba(129, 166, 198, 0.2);
+  border-bottom: 1px solid rgba(129, 166, 198, 0.2);
+}
+
+/* Divider line */
+.ff-divider {
+  height: 1px;
+  background: rgba(129, 166, 198, 0.2);
+  width: 100%;
+}
+
+/* Subtle dashboard mockup ring */
+.ff-mockup-ring {
+  border: 1px solid rgba(129, 166, 198, 0.35);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgb(243, 227, 208), rgb(210, 196, 180));
+  box-shadow:
+    0 16px 52px rgba(129, 166, 198, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* ===================== ANIMATIONS ===================== */
+
 @keyframes accordion-down {
   from {
     height: 0;
   }
-
   to {
     height: var(--radix-accordion-content-height);
   }
@@ -123,19 +358,76 @@
   from {
     height: var(--radix-accordion-content-height);
   }
-
   to {
     height: 0;
   }
 }
 
-@keyframes fade-in-out {
+@keyframes ff-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
+@keyframes ff-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes ff-bar-grow {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ff-pulse-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes border-beam {
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-out {
   0%,
   100% {
     opacity: 0;
   }
-
   20%,
   80% {
     opacity: 1;
@@ -146,7 +438,6 @@
   from {
     width: 0%;
   }
-
   to {
     width: 100%;
   }
@@ -156,7 +447,6 @@
   0% {
     transform: translateX(0);
   }
-
   100% {
     transform: translateX(calc(-250px * 5));
   }
@@ -166,7 +456,6 @@
   0% {
     transform: translateX(calc(-250px * 5));
   }
-
   100% {
     transform: translateX(0);
   }
@@ -177,52 +466,9 @@
     opacity: 0;
     transform: scale(0.95);
   }
-
   100% {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-@keyframes image1 {
-
-  0%,
-  25%,
-  100% {
-    opacity: 1;
-  }
-
-  33.33%,
-  91.66% {
-    opacity: 0;
-  }
-}
-
-@keyframes image2 {
-
-  0%,
-  58.33%,
-  100% {
-    opacity: 0;
-  }
-
-  66.66%,
-  91.66% {
-    opacity: 1;
-  }
-}
-
-@keyframes image3 {
-
-  0%,
-  91.66%,
-  100% {
-    opacity: 0;
-  }
-
-  33.33%,
-  58.33% {
-    opacity: 1;
   }
 }
 
@@ -230,7 +476,6 @@
   0% {
     transform: translateX(-50%) translateY(-50%) rotate(0deg);
   }
-
   100% {
     transform: translateX(-50%) translateY(-50%) rotate(360deg);
   }
@@ -238,13 +483,11 @@
 
 @keyframes shadow-ping {
   0% {
-    box-shadow: 0 0 0 0px hsl(0 0% 96%);
+    box-shadow: 0 0 0 0px rgba(129, 166, 198, 0);
   }
-
   50% {
-    box-shadow: 0 0 0 12px hsl(0 0% 80%);
+    box-shadow: 0 0 0 12px rgba(129, 166, 198, 0.15);
   }
-
   100% {
     box-shadow: 0 0 0 12px transparent;
   }
@@ -267,11 +510,9 @@
     opacity: 0;
     left: 0;
   }
-
   50% {
     opacity: 1;
   }
-
   100% {
     opacity: 0;
     left: 80%;
@@ -283,11 +524,9 @@
     opacity: 0;
     bottom: 0;
   }
-
   50% {
     opacity: 1;
   }
-
   100% {
     opacity: 0;
     bottom: 80%;
@@ -299,11 +538,9 @@
     transform: translate(0%);
     opacity: 0;
   }
-
   50% {
     opacity: 1;
   }
-
   100% {
     transform: translate(100%);
     opacity: 0;
@@ -314,21 +551,8 @@
   0% {
     transform: translateX(0%);
   }
-
   100% {
     transform: translateX(-100%);
-  }
-}
-
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -336,7 +560,6 @@
   0% {
     transform: translateZ(0) rotate(0);
   }
-
   100% {
     transform: translateZ(0) rotate(360deg);
   }
@@ -346,12 +569,29 @@
   0% {
     background-position: 0% 0%;
   }
-
   50% {
     background-position: 100% 100%;
   }
-
   to {
     background-position: 0% 0%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .ff-reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

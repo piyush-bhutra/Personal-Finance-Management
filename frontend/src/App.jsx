@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/Login'));
 const RegisterPage = lazy(() => import('./pages/Register'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPassword'));
 const AboutPage = lazy(() => import('./pages/About'));
 const SupportPage = lazy(() => import('./pages/Support'));
 const HomePage = lazy(() => import('./pages/Home'));
@@ -18,12 +20,25 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 
+const RouteLoadingFallback = () => (
+  <div className="flex min-h-[40vh] items-center justify-center px-4 py-16">
+    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+      <span
+        className="h-5 w-5 animate-spin rounded-full border-2 border-primary/40 border-t-primary"
+        aria-hidden="true"
+      />
+      <span>Loading your page...</span>
+    </div>
+  </div>
+);
+
 // Layout wrapper that adds footer to every page
 const Layout = ({ children }) => {
   const location = useLocation();
   // Don't show footer on pure auth pages
-  const noFooterRoutes = ['/login', '/register'];
-  const showFooter = !noFooterRoutes.includes(location.pathname);
+  const noFooterRoutes = ['/login', '/register', '/forgot-password'];
+  const hideFooterOnResetRoute = location.pathname.startsWith('/reset-password/');
+  const showFooter = !noFooterRoutes.includes(location.pathname) && !hideFooterOnResetRoute;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -37,7 +52,7 @@ const App = () => {
   return (
     <Router>
       <Layout>
-        <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading...</div>}>
+        <Suspense fallback={<RouteLoadingFallback />}>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
@@ -46,6 +61,8 @@ const App = () => {
             <Route path="/support" element={<SupportPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
             {/* Protected Routes */}
             <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />

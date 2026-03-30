@@ -4,6 +4,8 @@ const { body } = require('express-validator');
 const {
     registerUser,
     loginUser,
+    forgotPassword,
+    resetPassword,
     getMe,
     updateUserProfile
 } = require('../controllers/userController');
@@ -35,6 +37,27 @@ router.post(
         validateRequest,
     ],
     loginUser
+);
+
+router.post(
+    '/forgot-password',
+    [
+        body('email').isEmail().withMessage('Valid email is required'),
+        validateRequest,
+    ],
+    forgotPassword
+);
+
+router.post(
+    '/reset-password/:token',
+    [
+        body('password')
+            .isString()
+            .isLength({ min: 8 })
+            .withMessage('Password must be at least 8 characters long'),
+        validateRequest,
+    ],
+    resetPassword
 );
 
 router.get('/me', protect, getMe);

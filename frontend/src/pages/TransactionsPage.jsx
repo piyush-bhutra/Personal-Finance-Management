@@ -164,11 +164,10 @@ const TransactionsPage = () => {
                 <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   <div className="flex gap-4 items-center">
                     <div
-                      className={`p-2 rounded-full ${
-                        item.type === "expense"
+                      className={`p-2 rounded-full ${item.type === "expense"
                           ? "bg-red-500/10 text-red-500"
                           : "bg-green-500/10 text-green-500"
-                      }`}
+                        }`}
                     >
                       {item.type === "expense" ? (
                         <ArrowUpDown className="h-5 w-5 rotate-180" />
@@ -191,9 +190,8 @@ const TransactionsPage = () => {
                   </div>
                   <div className="text-right">
                     <p
-                      className={`font-bold text-lg ${
-                        item.type === "expense" ? "text-red-500" : "text-emerald-500"
-                      }`}
+                      className={`font-bold text-lg ${item.type === "expense" ? "text-red-500" : "text-emerald-500"
+                        }`}
                     >
                       {item.type === "expense" ? "-" : "+"}
                       {formatCurrency(item.amount)}

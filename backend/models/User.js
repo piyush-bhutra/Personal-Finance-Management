@@ -15,6 +15,25 @@ const userSchema = mongoose.Schema(
             type: String,
             required: [true, 'Please add a password'],
         },
+        age: {
+            type: Number,
+            required: false,
+            min: 0,
+        },
+        dateOfBirth: {
+            type: Date,
+            required: false,
+        },
+        occupation: {
+            type: String,
+            required: false,
+            trim: true,
+        },
+        investmentExperience: {
+            type: String,
+            required: false,
+            enum: ['beginner', 'intermediate', 'advanced'],
+        },
     },
     {
         timestamps: true,

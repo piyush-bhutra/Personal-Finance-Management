@@ -3,12 +3,24 @@ const bcrypt = require('bcryptjs');
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 
+// Generate JWT (hoisted via function declaration so generateUserResponse can safely call it)
+function generateToken(id) {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: '30d',
+    });
+}
+
 // Helper to generate user response
 const generateUserResponse = (user) => {
     return {
         _id: user.id,
         name: user.name,
         email: user.email,
+        age: user.age,
+        occupation: user.occupation,
+        investmentExperience: user.investmentExperience,
+        dateOfBirth: user.dateOfBirth,
+        createdAt: user.createdAt,
         token: generateToken(user._id),
     };
 };
@@ -17,7 +29,7 @@ const generateUserResponse = (user) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, age, occupation, investmentExperience, dateOfBirth } = req.body;
 
     if (!name || !email || !password) {
         res.status(400);
@@ -41,6 +53,10 @@ const registerUser = asyncHandler(async (req, res) => {
         name,
         email,
         password: hashedPassword,
+        age: typeof age === 'number' ? age : age ? Number(age) : undefined,
+        occupation,
+        investmentExperience,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
     });
 
     if (user) {
@@ -97,12 +113,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
         const updatedUser = await user.save();
 
-        res.json({
-            _id: updatedUser._id,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            token: generateToken(updatedUser._id), // Optionally re-issue token (good practice on identity changes)
-        });
+        res.json(generateUserResponse(updatedUser));
     } else {
         res.status(404);
         throw new Error('User not found');

@@ -132,6 +132,42 @@ const ProfilePage = () => {
         ? new Date(user.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' })
         : 'Unknown Date';
 
+    const ageLabel = (() => {
+        if (!user.dateOfBirth) return 'Not provided';
+        const dob = new Date(user.dateOfBirth);
+        if (Number.isNaN(dob.getTime())) return 'Not provided';
+        const today = new Date();
+        let years = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+            years--;
+        }
+        if (years < 0) return 'Not provided';
+        return `${years} year${years === 1 ? '' : 's'}`;
+    })();
+
+    const accountAgeLabel = (() => {
+        if (!user.createdAt) return 'Account age unavailable';
+        const created = new Date(user.createdAt);
+        const now = new Date();
+        const diffMs = now - created;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffMonths = Math.floor(diffDays / 30.44);
+        const diffYears = Math.floor(diffMonths / 12);
+
+        if (diffYears >= 1) {
+            const remMonths = diffMonths - diffYears * 12;
+            if (remMonths > 0) {
+                return `Account active for ${diffYears} year${diffYears > 1 ? 's' : ''} and ${remMonths} month${remMonths > 1 ? 's' : ''}`;
+            }
+            return `Account active for ${diffYears} year${diffYears > 1 ? 's' : ''}`;
+        }
+        if (diffMonths >= 1) {
+            return `Account active for ${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
+        }
+        return `Account active for ${diffDays || 1} day${diffDays === 1 ? '' : 's'}`;
+    })();
+
     const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
 
     const renderContent = () => {
@@ -205,9 +241,17 @@ const ProfilePage = () => {
                                         )}
                                         <p className="text-xs text-muted-foreground mt-1">This email is used for login.</p>
                                     </div>
-                                    <div className="space-y-1 md:col-span-2">
+                                    <div className="space-y-1">
                                         <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Member Since</p>
-                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50 md:w-[calc(50%-12px)] opacity-80 cursor-not-allowed">{memberSinceStr}</p>
+                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50 opacity-80 cursor-not-allowed">
+                                            {memberSinceStr}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Account Age</p>
+                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50 opacity-80 cursor-not-allowed">
+                                            {accountAgeLabel}
+                                        </p>
                                     </div>
                                 </div>
 
@@ -225,7 +269,7 @@ const ProfilePage = () => {
                             </CardContent>
                         </Card>
 
-                        {/* Financial Snapshot */}
+                        {/* Financial Snapshot & Profile Extras */}
                         <Card className="border-border/50 shadow-sm">
                             <CardHeader className="px-6 sm:px-10 pt-8">
                                 <CardTitle className="text-xl flex items-center gap-2">
@@ -238,22 +282,46 @@ const ProfilePage = () => {
                                 {loading ? (
                                     <div className="py-8 text-center text-muted-foreground animate-pulse">Loading snapshot...</div>
                                 ) : (
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
-                                            <span className="text-muted-foreground text-sm flex items-center gap-2"><CreditCard className="w-4 h-4" /> Expenses</span>
-                                            <span className="text-2xl font-bold">{stats.expensesCount}</span>
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                        <div className="space-y-4">
+                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                                                <span className="text-muted-foreground text-sm flex items-center gap-2"><CreditCard className="w-4 h-4" /> Expenses</span>
+                                                <span className="text-2xl font-bold">{stats.expensesCount}</span>
+                                            </div>
+                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                                                <span className="text-muted-foreground text-sm flex items-center gap-2"><Wallet className="w-4 h-4" /> Assets</span>
+                                                <span className="text-2xl font-bold">{stats.investmentsCount}</span>
+                                            </div>
                                         </div>
-                                        <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
-                                            <span className="text-muted-foreground text-sm flex items-center gap-2"><Wallet className="w-4 h-4" /> Assets</span>
-                                            <span className="text-2xl font-bold">{stats.investmentsCount}</span>
+                                        <div className="space-y-4">
+                                            <div className="bg-emerald-500/5 border border-emerald-500/20 p-4 rounded-xl flex flex-col gap-1">
+                                                <span className="text-emerald-500/80 text-sm flex items-center gap-2">Active</span>
+                                                <span className="text-2xl font-bold text-emerald-500">{stats.activeInvestments}</span>
+                                            </div>
+                                            <div className="bg-muted/30 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                                                <span className="text-muted-foreground text-sm flex items-center gap-2">Closed</span>
+                                                <span className="text-2xl font-bold opacity-70">{stats.closedInvestments}</span>
+                                            </div>
                                         </div>
-                                        <div className="bg-emerald-500/5 border border-emerald-500/20 p-4 rounded-xl flex flex-col gap-1">
-                                            <span className="text-emerald-500/80 text-sm flex items-center gap-2">Active</span>
-                                            <span className="text-2xl font-bold text-emerald-500">{stats.activeInvestments}</span>
-                                        </div>
-                                        <div className="bg-muted/30 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
-                                            <span className="text-muted-foreground text-sm flex items-center gap-2">Closed</span>
-                                            <span className="text-2xl font-bold opacity-70">{stats.closedInvestments}</span>
+                                        <div className="space-y-4">
+                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                                                <span className="text-muted-foreground text-sm">Role / Occupation</span>
+                                                <span className="text-base font-medium">
+                                                    {user.occupation || 'Not provided'}
+                                                </span>
+                                            </div>
+                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                                                <span className="text-muted-foreground text-sm">Financial Experience</span>
+                                                <span className="text-base font-medium capitalize">
+                                                    {user.investmentExperience || 'Not provided'}
+                                                </span>
+                                            </div>
+                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                                                <span className="text-muted-foreground text-sm">Age</span>
+                                                <span className="text-base font-medium">
+                                                    {ageLabel}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 )}

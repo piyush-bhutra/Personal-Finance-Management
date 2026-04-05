@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "../components/Navbar";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import dashboardService from "../features/dashboard/dashboardService";
@@ -20,7 +25,7 @@ const endOfMonth = (year, monthIndex) => {
 const ReportsPage = () => {
   const [rangeMode, setRangeMode] = useState("month");
   const [selectedMonth, setSelectedMonth] = useState(
-    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`
+    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`,
   );
   const [from, setFrom] = useState(toISODate(startOfCurrentMonth()));
   const [to, setTo] = useState(toISODate(new Date()));
@@ -92,7 +97,7 @@ const ReportsPage = () => {
 
     const totalExpenses = filteredExpenses.reduce(
       (sum, expense) => sum + Number(expense.amount || 0),
-      0
+      0,
     );
 
     return {
@@ -108,11 +113,11 @@ const ReportsPage = () => {
 
     const investedAmount = investments.reduce(
       (sum, plan) => sum + Number(plan.totalInvested || 0),
-      0
+      0,
     );
     const currentOrRealizedValue = investments.reduce(
       (sum, plan) => sum + Number(plan.currentValue || 0),
-      0
+      0,
     );
 
     return {
@@ -141,6 +146,13 @@ const ReportsPage = () => {
     investments.length === 0 &&
     investmentTransactions.length === 0 &&
     filteredExpenses.length === 0;
+
+  const savingsRate =
+    monthlySummary.realizedIncome > 0
+      ? (monthlySummary.netSavings / monthlySummary.realizedIncome) * 100
+      : 0;
+
+  const topExpenseCategory = expenseByCategory[0];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -208,8 +220,9 @@ const ReportsPage = () => {
 
         {from && to && fromDate > toDate && (
           <Card>
-            <CardContent className="py-6 text-sm text-red-500">
-              Invalid range: "From" date must be earlier than or equal to "To" date.
+            <CardContent className="py-6 text-sm text-primary">
+              Invalid range: "From" date must be earlier than or equal to "To"
+              date.
             </CardContent>
           </Card>
         )}
@@ -224,7 +237,7 @@ const ReportsPage = () => {
 
         {error && !loading && (
           <Card>
-            <CardContent className="py-6 text-red-500">{error}</CardContent>
+            <CardContent className="py-6 text-primary">{error}</CardContent>
           </Card>
         )}
 
@@ -239,6 +252,40 @@ const ReportsPage = () => {
         {!loading && !error && !hasNoData && (
           <>
             <div className="grid gap-4 md:grid-cols-3">
+              <Card className="border-border/60">
+                <CardContent className="p-5">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Net Savings</p>
+                  <p
+                    className={`mt-2 text-2xl font-semibold tabular-nums ${
+                      monthlySummary.netSavings >= 0 ? "text-accent" : "text-primary"
+                    }`}
+                  >
+                    {formatCurrency(monthlySummary.netSavings)}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-border/60">
+                <CardContent className="p-5">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Savings Rate</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums text-accent">
+                    {Number.isFinite(savingsRate) ? `${savingsRate.toFixed(1)}%` : "0.0%"}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-border/60">
+                <CardContent className="p-5">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Top Expense Category</p>
+                  <p className="mt-2 text-lg font-semibold">
+                    {topExpenseCategory ? topExpenseCategory.category : "-"}
+                  </p>
+                  <p className="text-sm text-primary tabular-nums">
+                    {topExpenseCategory ? formatCurrency(topExpenseCategory.total) : "No data"}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Monthly Summary</CardTitle>
@@ -246,13 +293,13 @@ const ReportsPage = () => {
                 <CardContent className="space-y-2 text-sm">
                   <p className="flex justify-between">
                     <span>Total Income (Realized Exits)</span>
-                    <span className="font-semibold text-emerald-500">
+                    <span className="font-semibold text-accent">
                       {formatCurrency(monthlySummary.realizedIncome)}
                     </span>
                   </p>
                   <p className="flex justify-between">
                     <span>Total Expenses</span>
-                    <span className="font-semibold text-red-500">
+                    <span className="font-semibold text-primary">
                       {formatCurrency(monthlySummary.totalExpenses)}
                     </span>
                   </p>
@@ -260,7 +307,9 @@ const ReportsPage = () => {
                     <span>Net Savings</span>
                     <span
                       className={`font-semibold ${
-                        monthlySummary.netSavings >= 0 ? "text-emerald-500" : "text-red-500"
+                        monthlySummary.netSavings >= 0
+                          ? "text-accent"
+                          : "text-primary"
                       }`}
                     >
                       {formatCurrency(monthlySummary.netSavings)}
@@ -271,20 +320,28 @@ const ReportsPage = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-base">Investment Performance</CardTitle>
+                  <CardTitle className="text-base">
+                    Investment Performance
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <p className="flex justify-between">
                     <span>Active Investments</span>
-                    <span className="font-semibold">{performance.activeCount}</span>
+                    <span className="font-semibold">
+                      {performance.activeCount}
+                    </span>
                   </p>
                   <p className="flex justify-between">
                     <span>Closed Investments</span>
-                    <span className="font-semibold">{performance.closedCount}</span>
+                    <span className="font-semibold">
+                      {performance.closedCount}
+                    </span>
                   </p>
                   <p className="flex justify-between">
                     <span>Invested Amount</span>
-                    <span className="font-semibold">{formatCurrency(performance.investedAmount)}</span>
+                    <span className="font-semibold">
+                      {formatCurrency(performance.investedAmount)}
+                    </span>
                   </p>
                   <p className="flex justify-between">
                     <span>Current/Realized Value</span>
@@ -296,7 +353,7 @@ const ReportsPage = () => {
                     <span>Difference</span>
                     <span
                       className={`font-semibold ${
-                        performance.delta >= 0 ? "text-emerald-500" : "text-red-500"
+                        performance.delta >= 0 ? "text-accent" : "text-primary"
                       }`}
                     >
                       {formatCurrency(performance.delta)}
@@ -312,14 +369,17 @@ const ReportsPage = () => {
                 <CardContent className="space-y-2 text-sm">
                   <p className="flex justify-between">
                     <span>From</span>
-                    <span className="font-semibold">{formatDate(fromDate)}</span>
+                    <span className="font-semibold">
+                      {formatDate(fromDate)}
+                    </span>
                   </p>
                   <p className="flex justify-between">
                     <span>To</span>
                     <span className="font-semibold">{formatDate(toDate)}</span>
                   </p>
                   <p className="text-muted-foreground">
-                    Expense categories are computed strictly for this selected period.
+                    Expense categories are computed strictly for this selected
+                    period.
                   </p>
                 </CardContent>
               </Card>
@@ -337,12 +397,24 @@ const ReportsPage = () => {
                 ) : (
                   <div className="space-y-3">
                     {expenseByCategory.map((item) => (
-                      <div
-                        key={item.category}
-                        className="flex items-center justify-between border-b pb-2 last:border-none last:pb-0"
-                      >
-                        <span>{item.category}</span>
-                        <span className="font-semibold">{formatCurrency(item.total)}</span>
+                      <div key={item.category} className="space-y-1.5">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>{item.category}</span>
+                          <span className="font-semibold tabular-nums">
+                            {formatCurrency(item.total)}
+                          </span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-secondary/45 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary"
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                (item.total / (expenseByCategory[0]?.total || 1)) * 100,
+                              )}%`,
+                            }}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -1,136 +1,170 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User, Shield, AlertTriangle, Wallet, Activity, CreditCard, ChevronRight, CheckCircle2, Settings, Server, LogOut, Sun, Moon, Edit2, Loader2, X, Check } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import expenseService from '../features/expenses/expenseService';
-import investmentService from '../features/investments/investmentService';
-import authService from '../features/auth/authService';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  User,
+  Shield,
+  AlertTriangle,
+  Wallet,
+  Activity,
+  CreditCard,
+  ChevronRight,
+  CheckCircle2,
+  Settings,
+  Server,
+  LogOut,
+  Sun,
+  Moon,
+  Edit2,
+  Loader2,
+  X,
+  Check,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import expenseService from "../features/expenses/expenseService";
+import investmentService from "../features/investments/investmentService";
+import authService from "../features/auth/authService";
 
 const ProfilePage = () => {
-    const navigate = useNavigate();
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('profile');
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("profile");
 
-    // Editing state
-    const [isEditing, setIsEditing] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [editForm, setEditForm] = useState({ name: '', email: '' });
-    const [editError, setEditError] = useState('');
+  // Editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", email: "" });
+  const [editError, setEditError] = useState("");
 
-    const [stats, setStats] = useState({
-        expensesCount: 0,
-        investmentsCount: 0,
-        activeInvestments: 0,
-        closedInvestments: 0,
-    });
+  const [stats, setStats] = useState({
+    expensesCount: 0,
+    investmentsCount: 0,
+    activeInvestments: 0,
+    closedInvestments: 0,
+  });
 
-    useEffect(() => {
-        // 1. Get user identity from LocalStorage
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            try {
-                const userData = JSON.parse(userStr);
-                setUser(userData);
-                setEditForm({ name: userData.name, email: userData.email });
-            } catch {
-                console.error('Failed to parse user data');
-            }
-        }
-
-        // 2. Fetch lightweight snapshot data
-        const fetchSnapshot = async () => {
-            try {
-                setLoading(true);
-                const [expenses, investments] = await Promise.all([
-                    expenseService.getExpenses(),
-                    investmentService.getInvestments()
-                ]);
-
-                const expCount = expenses ? expenses.length : 0;
-                const invCount = investments ? investments.length : 0;
-                const activeInv = investments ? investments.filter(i => i.status !== 'closed').length : 0;
-                const closedInv = invCount - activeInv;
-
-                setStats({
-                    expensesCount: expCount,
-                    investmentsCount: invCount,
-                    activeInvestments: activeInv,
-                    closedInvestments: closedInv,
-                });
-            } catch (error) {
-                console.error('Failed to fetch snapshot data', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchSnapshot();
-    }, []);
-
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        navigate('/login');
-    };
-
-    const handleEditChange = (e) => {
-        setEditForm({ ...editForm, [e.target.name]: e.target.value });
-        setEditError(''); // clear error on type
-    };
-
-    const handleCancelEdit = () => {
-        setIsEditing(false);
-        setEditError('');
-        // Restore original values
-        if (user) setEditForm({ name: user.name, email: user.email });
-    };
-
-    const handleSaveProfile = async () => {
-        // Validation
-        if (!editForm.name || editForm.name.length < 2) {
-            setEditError('Name must be at least 2 characters.');
-            return;
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!editForm.email || !emailRegex.test(editForm.email)) {
-            setEditError('Please enter a valid email address.');
-            return;
-        }
-
-        try {
-            setIsSaving(true);
-            setEditError('');
-
-            // Only send what changed, or just send both
-            const updatedUser = await authService.updateProfile({
-                name: editForm.name,
-                email: editForm.email
-            });
-
-            setUser(updatedUser);
-            setIsEditing(false);
-        } catch (error) {
-            const message = (error.response && error.response.data && error.response.data.message) || error.message || 'Failed to update profile';
-            setEditError(message);
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    if (!user) {
-        return (
-            <div className="flex-1 flex items-center justify-center p-8">
-                <p className="text-muted-foreground">Loading account data...</p>
-            </div>
-        );
+  useEffect(() => {
+    // 1. Get user identity from LocalStorage
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        setUser(userData);
+        setEditForm({ name: userData.name, email: userData.email });
+      } catch {
+        console.error("Failed to parse user data");
+      }
     }
 
-    // Formatting Member Since (Month + Year only)
-    const memberSinceStr = user.createdAt
-        ? new Date(user.createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' })
-        : 'Unknown Date';
+    // 2. Fetch lightweight snapshot data
+    const fetchSnapshot = async () => {
+      try {
+        setLoading(true);
+        const [expenses, investments] = await Promise.all([
+          expenseService.getExpenses(),
+          investmentService.getInvestments(),
+        ]);
+
+        const expCount = expenses ? expenses.length : 0;
+        const invCount = investments ? investments.length : 0;
+        const activeInv = investments
+          ? investments.filter((i) => i.status !== "closed").length
+          : 0;
+        const closedInv = invCount - activeInv;
+
+        setStats({
+          expensesCount: expCount,
+          investmentsCount: invCount,
+          activeInvestments: activeInv,
+          closedInvestments: closedInv,
+        });
+      } catch (error) {
+        console.error("Failed to fetch snapshot data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSnapshot();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
+  const handleEditChange = (e) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+    setEditError(""); // clear error on type
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditError("");
+    // Restore original values
+    if (user) setEditForm({ name: user.name, email: user.email });
+  };
+
+  const handleSaveProfile = async () => {
+    // Validation
+    if (!editForm.name || editForm.name.length < 2) {
+      setEditError("Name must be at least 2 characters.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!editForm.email || !emailRegex.test(editForm.email)) {
+      setEditError("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setEditError("");
+
+      // Only send what changed, or just send both
+      const updatedUser = await authService.updateProfile({
+        name: editForm.name,
+        email: editForm.email,
+      });
+
+      setUser(updatedUser);
+      setIsEditing(false);
+    } catch (error) {
+      const message =
+        (error.response &&
+          error.response.data &&
+          error.response.data.message) ||
+        error.message ||
+        "Failed to update profile";
+      setEditError(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <p className="text-muted-foreground">Loading account data...</p>
+      </div>
+    );
+  }
+
+  // Formatting Member Since (Month + Year only)
+  const memberSinceStr = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "long",
+      })
+    : "Unknown Date";
 
     const ageLabel = (() => {
         if (!user.dateOfBirth) return 'Not provided';
@@ -170,44 +204,51 @@ const ProfilePage = () => {
 
     const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
 
-    const renderContent = () => {
-        switch (activeTab) {
-            case 'profile':
-                return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        {/* Account Identity */}
-                        <Card className="border-border/50 shadow-sm overflow-hidden">
-                            <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent flex justify-end items-start p-4">
-                                {!isEditing && (
-                                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)} className="gap-2 bg-background/50 hover:bg-background/80 backdrop-blur-sm">
-                                        <Edit2 className="w-4 h-4" />
-                                        Edit Profile
-                                    </Button>
-                                )}
-                            </div>
-                            <CardContent className="px-6 sm:px-10 pb-10 pt-0 relative">
-                                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end -mt-12 mb-6">
-                                    <div className="w-24 h-24 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold shadow-xl border-4 border-background transition-colors">
-                                        {initial}
-                                    </div>
-                                    <div className="flex-1 space-y-1 pb-1">
-                                        <h2 className="text-2xl font-bold tracking-tight">{user.name}</h2>
-                                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                                            <span>{user.email}</span>
-                                            <span>•</span>
-                                            <span className="flex items-center gap-1 text-emerald-500">
-                                                <CheckCircle2 className="w-3 h-3" /> Active
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+  const renderContent = () => {
+    switch (activeTab) {
+      case "profile":
+        return (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* Account Identity */}
+            <Card className="border-border/50 shadow-sm overflow-hidden">
+              <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent flex justify-end items-start p-4">
+                {!isEditing && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditing(true)}
+                    className="gap-2 bg-background/50 hover:bg-background/80 backdrop-blur-sm"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Edit Profile
+                  </Button>
+                )}
+              </div>
+              <CardContent className="px-6 sm:px-10 pb-10 pt-0 relative">
+                <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end -mt-12 mb-6">
+                  <div className="w-24 h-24 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold shadow-xl border-4 border-background transition-colors">
+                    {initial}
+                  </div>
+                  <div className="flex-1 space-y-1 pb-1">
+                    <h2 className="text-2xl font-bold tracking-tight">
+                      {user.name}
+                    </h2>
+                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                      <span>{user.email}</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1 text-accent">
+                        <CheckCircle2 className="w-3 h-3" /> Active
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-                                {editError && (
-                                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm flex items-center gap-2">
-                                        <AlertTriangle className="w-4 h-4 shrink-0" />
-                                        {editError}
-                                    </div>
-                                )}
+                {editError && (
+                  <div className="mb-6 p-4 bg-primary/10 border border-primary/25 text-primary rounded-lg text-sm flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    {editError}
+                  </div>
+                )}
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                                     <div className="space-y-2">
@@ -255,19 +296,32 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
 
-                                {isEditing && (
-                                    <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-border/50">
-                                        <Button variant="outline" onClick={handleCancelEdit} disabled={isSaving} className="gap-2">
-                                            <X className="w-4 h-4" /> Cancel
-                                        </Button>
-                                        <Button onClick={handleSaveProfile} disabled={isSaving} className="gap-2">
-                                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                            {isSaving ? 'Saving...' : 'Save Changes'}
-                                        </Button>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                {isEditing && (
+                  <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-border/50">
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={isSaving}
+                      className="gap-2"
+                    >
+                      <X className="w-4 h-4" /> Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={isSaving}
+                      className="gap-2"
+                    >
+                      {isSaving ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Check className="w-4 h-4" />
+                      )}
+                      {isSaving ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
                         {/* Financial Snapshot & Profile Extras */}
                         <Card className="border-border/50 shadow-sm">
@@ -352,155 +406,191 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
-                                    <div>
-                                        <p className="font-medium">Timezone</p>
-                                        <p className="text-sm text-muted-foreground">Used for entry dates and report aggregation.</p>
-                                    </div>
-                                    <div className="bg-background border border-border px-4 py-2 rounded-md text-sm font-medium">
-                                        Asia/Kolkata
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
-                                    <div>
-                                        <p className="font-medium">Theme</p>
-                                        <p className="text-sm text-muted-foreground">Your current active UI appearance.</p>
-                                    </div>
-                                    <div className="bg-background border border-border px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 capitalize">
-                                        {document.documentElement.classList.contains('light') ? (
-                                            <><Sun className="w-4 h-4" /> Light</>
-                                        ) : (
-                                            <><Moon className="w-4 h-4" /> Dark</>
-                                        )}
-                                    </div>
-                                </div>
-
-                            </CardContent>
-                        </Card>
-                    </div>
-                );
-            case 'privacy':
-                return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <Card className="border-border/50 shadow-sm">
-                            <CardHeader className="px-6 sm:px-10 pt-8">
-                                <CardTitle className="text-xl flex items-center gap-2">
-                                    <Shield className="w-5 h-5 text-primary" />
-                                    Data & Privacy
-                                </CardTitle>
-                                <CardDescription>Manage how your information is stored and exported.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="px-6 sm:px-10 pb-8 space-y-6">
-                                <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-3">
-                                    <Server className="w-5 h-5 shrink-0" />
-                                    <p>Your data is stored securely. We implement standard security protocols to protect your sensitive financial information.</p>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
-                                    <div>
-                                        <p className="font-medium">Export Data</p>
-                                        <p className="text-sm text-muted-foreground">Download a complete copy of all your tracked data.</p>
-                                    </div>
-                                    <Button variant="outline" disabled className="gap-2 shrink-0">
-                                        Coming Soon
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                );
-            case 'actions':
-                return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <Card className="border-red-500/20 shadow-sm">
-                            <CardHeader className="px-6 sm:px-10 pt-8">
-                                <CardTitle className="text-xl flex items-center gap-2 text-red-500">
-                                    <AlertTriangle className="w-5 h-5" />
-                                    Account Actions
-                                </CardTitle>
-                                <CardDescription>Destructive actions and session management.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="px-6 sm:px-10 pb-8 space-y-6">
-
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/10 border border-border/50 rounded-xl gap-4">
-                                    <div>
-                                        <p className="font-medium">Log Out</p>
-                                        <p className="text-sm text-muted-foreground">Securely end your current session on this device.</p>
-                                    </div>
-                                    <Button variant="outline" onClick={handleLogout} className="gap-2 shrink-0">
-                                        <LogOut className="w-4 h-4" />
-                                        Logout
-                                    </Button>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-red-500/5 border border-red-500/20 rounded-xl gap-4">
-                                    <div>
-                                        <p className="font-medium text-red-600 dark:text-red-400">Delete Account</p>
-                                        <p className="text-sm text-red-600/70 dark:text-red-400/70">Permanently erase all your data. This cannot be reversed.</p>
-                                    </div>
-                                    <Button variant="destructive" disabled className="shrink-0">
-                                        Delete
-                                    </Button>
-                                </div>
-
-                            </CardContent>
-                        </Card>
-                    </div>
-                );
-            default:
-                return null;
-        }
-    };
-
-    // eslint-disable-next-line no-unused-vars
-    const NavButton = ({ id, label, icon: IconComponent, isDestructive = false }) => {
-        const isActive = activeTab === id;
-        return (
-            <button
-                onClick={() => setActiveTab(id)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all w-full text-left
-          ${isActive && !isDestructive ? 'bg-secondary/80 text-secondary-foreground font-medium shadow-sm' : ''}
-          ${!isActive && !isDestructive ? 'text-muted-foreground hover:bg-secondary/40' : ''}
-          ${isDestructive && isActive ? 'bg-red-500/10 text-red-600 dark:text-red-400 font-medium' : ''}
-          ${isDestructive && !isActive ? 'text-red-500/70 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400' : ''}
-        `}
-            >
-                <IconComponent className={`w-5 h-5 ${isActive && !isDestructive ? 'text-primary' : ''}`} />
-                <div className="flex-1">{label}</div>
-                {isActive && !isDestructive && <ChevronRight className="w-4 h-4 opacity-50" />}
-            </button>
-        );
-    };
-
-    return (
-        <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
-                <p className="text-muted-foreground mt-1">Manage your profile, preferences, and account actions.</p>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-8">
-                {/* Left Sidebar */}
-                <aside className="w-full md:w-64 shrink-0">
-                    <nav className="flex flex-col gap-2 sticky top-24">
-                        <NavButton id="profile" label="Profile" icon={User} />
-                        <NavButton id="settings" label="Settings" icon={Settings} />
-                        <NavButton id="privacy" label="Data & Privacy" icon={Shield} />
-
-                        <div className="my-2 border-t border-border/50"></div>
-
-                        <NavButton id="actions" label="Account Actions" icon={AlertTriangle} isDestructive />
-                    </nav>
-                </aside>
-
-                {/* Main Content Area */}
-                <div className="flex-1 min-w-0">
-                    {renderContent()}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
+                  <div>
+                    <p className="font-medium">Timezone</p>
+                    <p className="text-sm text-muted-foreground">
+                      Used for entry dates and report aggregation.
+                    </p>
+                  </div>
+                  <div className="bg-background border border-border px-4 py-2 rounded-md text-sm font-medium">
+                    Asia/Kolkata
+                  </div>
                 </div>
-            </div>
-        </div>
+
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
+                  <div>
+                    <p className="font-medium">Theme</p>
+                    <p className="text-sm text-muted-foreground">
+                      Your current active UI appearance.
+                    </p>
+                  </div>
+                  <div className="bg-background border border-border px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 capitalize">
+                    {document.documentElement.classList.contains("light") ? (
+                      <>
+                        <Sun className="w-4 h-4" /> Light
+                      </>
+                    ) : (
+                      <>
+                        <Moon className="w-4 h-4" /> Dark
+                      </>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case "privacy":
+        return (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader className="px-6 sm:px-10 pt-8">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-primary" />
+                  Data & Privacy
+                </CardTitle>
+                <CardDescription>
+                  Manage how your information is stored and exported.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-6 sm:px-10 pb-8 space-y-6">
+                <div className="p-4 bg-accent/10 border border-accent/30 rounded-xl text-accent text-sm flex items-center gap-3">
+                  <Server className="w-5 h-5 shrink-0" />
+                  <p>
+                    Your data is stored securely. We implement standard security
+                    protocols to protect your sensitive financial information.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
+                  <div>
+                    <p className="font-medium">Export Data</p>
+                    <p className="text-sm text-muted-foreground">
+                      Download a complete copy of all your tracked data.
+                    </p>
+                  </div>
+                  <Button variant="outline" disabled className="gap-2 shrink-0">
+                    Coming Soon
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case "actions":
+        return (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <Card className="border-primary/25 shadow-sm">
+              <CardHeader className="px-6 sm:px-10 pt-8">
+                <CardTitle className="text-xl flex items-center gap-2 text-primary">
+                  <AlertTriangle className="w-5 h-5" />
+                  Account Actions
+                </CardTitle>
+                <CardDescription>
+                  Destructive actions and session management.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-6 sm:px-10 pb-8 space-y-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/10 border border-border/50 rounded-xl gap-4">
+                  <div>
+                    <p className="font-medium">Log Out</p>
+                    <p className="text-sm text-muted-foreground">
+                      Securely end your current session on this device.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="gap-2 shrink-0"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </Button>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-primary/10 border border-primary/25 rounded-xl gap-4">
+                  <div>
+                    <p className="font-medium text-primary">Delete Account</p>
+                    <p className="text-sm text-primary/70">
+                      Permanently erase all your data. This cannot be reversed.
+                    </p>
+                  </div>
+                  <Button variant="destructive" disabled className="shrink-0">
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  const NavButton = ({
+    id,
+    label,
+    icon: IconComponent,
+    isDestructive = false,
+  }) => {
+    const isActive = activeTab === id;
+    return (
+      <button
+        onClick={() => setActiveTab(id)}
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all w-full text-left
+          ${isActive && !isDestructive ? "bg-secondary/80 text-secondary-foreground font-medium shadow-sm" : ""}
+          ${!isActive && !isDestructive ? "text-muted-foreground hover:bg-secondary/40" : ""}
+          ${isDestructive && isActive ? "bg-primary/10 text-primary font-medium" : ""}
+          ${isDestructive && !isActive ? "text-primary/70 hover:bg-primary/10 hover:text-primary" : ""}
+        `}
+      >
+        <IconComponent
+          className={`w-5 h-5 ${isActive && !isDestructive ? "text-primary" : ""}`}
+        />
+        <div className="flex-1">{label}</div>
+        {isActive && !isDestructive && (
+          <ChevronRight className="w-4 h-4 opacity-50" />
+        )}
+      </button>
     );
+  };
+
+  return (
+    <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
+        <p className="text-muted-foreground mt-1">
+          Manage your profile, preferences, and account actions.
+        </p>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Left Sidebar */}
+        <aside className="w-full md:w-64 shrink-0">
+          <nav className="flex flex-col gap-2 sticky top-24">
+            <NavButton id="profile" label="Profile" icon={User} />
+            <NavButton id="settings" label="Settings" icon={Settings} />
+            <NavButton id="privacy" label="Data & Privacy" icon={Shield} />
+
+            <div className="my-2 border-t border-border/50"></div>
+
+            <NavButton
+              id="actions"
+              label="Account Actions"
+              icon={AlertTriangle}
+              isDestructive
+            />
+          </nav>
+        </aside>
+
+        {/* Main Content Area */}
+        <div className="flex-1 min-w-0">{renderContent()}</div>
+      </div>
+    </div>
+  );
 };
 
 export default ProfilePage;

@@ -19,37 +19,39 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
-    const onChange = (e) => {
-        setError('');
-        setFormData((prevState) => ({
-            ...prevState,
-            [e.target.id]: e.target.value,
-        }));
-    };
+  const onChange = (e) => {
+    setError("");
+    setFormData((prevState) => ({
+      ...prevState,
+      [e.target.id]: e.target.value,
+    }));
+  };
 
-    const onSubmit = async (e) => {
-        e.preventDefault();
+  const onSubmit = async (e) => {
+    e.preventDefault();
 
-        setLoading(true);
-        try {
-            const userData = {
-                email,
-                password,
-            };
-            await authService.login(userData);
-            navigate('/home');
-        } catch (error) {
-            console.error(error);
-            const msg = error.response?.data?.message || 'Login failed. Please check your credentials.';
-            setError(msg);
-        } finally {
-            setLoading(false);
-        }
-    };
+    setLoading(true);
+    try {
+      const userData = {
+        email,
+        password,
+      };
+      await authService.login(userData);
+      navigate("/home");
+    } catch (error) {
+      console.error(error);
+      const msg =
+        error.response?.data?.message ||
+        "Login failed. Please check your credentials.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="min-h-screen bg-background flex flex-col">
-            <Navbar variant="public" />
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Navbar variant="public" />
 
             <div className="flex-1 flex items-center justify-center px-4">
                 <Card className="w-full max-w-sm">

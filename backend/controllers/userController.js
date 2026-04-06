@@ -5,16 +5,17 @@ const asyncHandler = require("express-async-handler");
 const User = require("../models/User");
 
 
-const generateToken = (id) => {
+function generateToken(id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || "30d",
   });
-};
+}
 
-// Helper to generate user response
+// Helper to generate user response (supports Mongoose docs and `.lean()` objects)
 const generateUserResponse = (user) => {
+  const id = user?._id || user?.id;
   return {
-    _id: user.id,
+    _id: id?.toString ? id.toString() : id,
     name: user.name,
     email: user.email,
     age: user.age,
@@ -22,7 +23,7 @@ const generateUserResponse = (user) => {
     investmentExperience: user.investmentExperience,
     dateOfBirth: user.dateOfBirth,
     createdAt: user.createdAt,
-    token: generateToken(user._id),
+    token: generateToken(id),
   };
 };
 
@@ -80,7 +81,7 @@ const loginUser = asyncHandler(async (req, res) => {
     .toLowerCase();
 
   // Check for user email
-  const user = await User.findOne({ email: normalizedEmail });
+  const user = await User.findOne({ email: normalizedEmail }).lean();
 
   if (user && (await bcrypt.compare(password, user.password))) {
     res.json(generateUserResponse(user));

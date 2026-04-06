@@ -15,62 +15,30 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="border-t border-[rgba(129,166,198,0.28)] bg-[rgb(243,227,208)]">
+    <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-[1180px] px-4 pb-8 pt-12 sm:px-6">
         {/* Top row */}
-        <div className="mb-7 flex flex-col gap-6 border-b border-[rgba(129,166,198,0.24)] pb-8 md:flex-row md:items-center md:justify-between">
+        <div className="mb-7 flex flex-col gap-6 border-b border-border/60 pb-8 md:flex-row md:items-center md:justify-between">
           {/* Brand */}
           <Link
             to="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.6rem",
-              textDecoration: "none",
-            }}
+            className="flex items-center gap-2.5 no-underline"
           >
-            <div
-              style={{
-                width: "1.85rem",
-                height: "1.85rem",
-                borderRadius: "5px",
-                background: "rgba(170,205,220,0.35)",
-                border: "1px solid rgba(129,166,198,0.45)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <BarChart3 size={13} color="rgb(129,166,198)" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent/35 border border-primary/40">
+              <BarChart3 className="h-4 w-4 text-primary" />
             </div>
-            <span
-              style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
-                fontSize: "1.1rem",
-                color: "rgb(83,74,64)",
-              }}
-            >
+            <span className="font-serif text-lg text-foreground tracking-tight">
               FinanceFlow
             </span>
           </Link>
 
           {/* Nav links */}
-          <nav style={{ display: "flex", flexWrap: "wrap", gap: "1.75rem" }}>
+          <nav className="flex flex-wrap gap-x-7 gap-y-3">
             {navLinks.map(({ label, to }) => (
               <Link
                 key={label}
                 to={to}
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: "0.85rem",
-                  color: "rgb(83,74,64)",
-                  textDecoration: "none",
-                  transition: "color 0.2s",
-                }}
-                onMouseEnter={(e) => (e.target.style.color = "rgb(83,74,64)")}
-                onMouseLeave={(e) =>
-                  (e.target.style.color = "rgb(83,74,64)")
-                }
+                className="font-sans text-sm text-muted-foreground hover:text-foreground transition-colors no-underline"
               >
                 {label}
               </Link>
@@ -83,13 +51,7 @@ const Footer = () => {
               <a
                 key={label}
                 href={href}
-                style={{
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontSize: "0.78rem",
-                  color: "rgb(83,74,64)",
-                  textDecoration: "none",
-                  transition: "color 0.2s",
-                }}
+                className="font-sans text-xs text-muted-foreground hover:text-foreground transition-colors no-underline"
               >
                 {label}
               </a>
@@ -99,24 +61,10 @@ const Footer = () => {
 
         {/* Bottom row — copyright */}
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <p
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: "0.78rem",
-              color: "rgb(83,74,64)",
-              margin: 0,
-            }}
-          >
+          <p className="font-sans text-xs text-muted-foreground m-0">
             © {new Date().getFullYear()} FinanceFlow, Inc. All rights reserved.
           </p>
-          <p
-            style={{
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: "0.78rem",
-              color: "rgba(83,74,64,0.75)",
-              margin: 0,
-            }}
-          >
+          <p className="font-sans text-xs text-muted-foreground/80 m-0">
             Built for clarity. Designed for trust.
           </p>
         </div>

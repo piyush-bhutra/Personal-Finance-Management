@@ -52,42 +52,46 @@
     --ff-accent-blue: rgb(129, 166, 198);
     --ff-accent-light: rgb(170, 205, 220);
     --ff-border: rgba(129, 166, 198, 0.3);
+
+    color-scheme: light;
   }
 
-  /* Keep .dark as an alias — same warm light theme */
+  /* Dark theme */
   .dark {
-    --background: 32 60% 88%;
-    --foreground: 25 30% 12%;
-    --card: 36 55% 95%;
-    --card-foreground: 25 30% 12%;
-    --popover: 36 55% 95%;
-    --popover-foreground: 25 30% 12%;
-    --primary: 208 38% 64%;
-    --primary-foreground: 36 55% 96%;
-    --secondary: 32 25% 76%;
-    --secondary-foreground: 25 30% 12%;
-    --muted: 32 20% 84%;
-    --muted-foreground: 25 15% 42%;
-    --accent: 198 42% 77%;
-    --accent-foreground: 25 30% 12%;
+    --background: 220 18% 10%; /* deep slate */
+    --foreground: 36 55% 92%; /* warm cream text */
+    --card: 220 16% 14%;
+    --card-foreground: 36 55% 92%;
+    --popover: 220 16% 14%;
+    --popover-foreground: 36 55% 92%;
+    --primary: 208 38% 64%; /* keep brand steel blue */
+    --primary-foreground: 220 18% 10%;
+    --secondary: 220 14% 18%;
+    --secondary-foreground: 36 55% 92%;
+    --muted: 220 12% 20%;
+    --muted-foreground: 36 15% 70%;
+    --accent: 208 32% 22%;
+    --accent-foreground: 36 55% 92%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 36 55% 96%;
-    --border: 32 22% 76%;
-    --input: 32 25% 82%;
+    --border: 220 12% 24%;
+    --input: 220 12% 22%;
     --ring: 208 38% 64%;
     --chart-1: 208 38% 64%;
-    --chart-2: 198 42% 77%;
-    --chart-3: 25 15% 40%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --sidebar: 36 55% 92%;
-    --sidebar-foreground: 25 30% 12%;
+    --chart-2: 198 42% 60%;
+    --chart-3: 36 15% 70%;
+    --chart-4: 43 74% 56%;
+    --chart-5: 27 87% 57%;
+    --sidebar: 220 16% 12%;
+    --sidebar-foreground: 36 55% 92%;
     --sidebar-primary: 208 38% 64%;
-    --sidebar-primary-foreground: 36 55% 96%;
-    --sidebar-accent: 32 25% 82%;
-    --sidebar-accent-foreground: 25 30% 12%;
-    --sidebar-border: 32 22% 76%;
+    --sidebar-primary-foreground: 220 18% 10%;
+    --sidebar-accent: 220 14% 18%;
+    --sidebar-accent-foreground: 36 55% 92%;
+    --sidebar-border: 220 12% 24%;
     --sidebar-ring: 208 38% 64%;
+
+    color-scheme: dark;
   }
 }
 
@@ -111,7 +115,6 @@
     font-family: "DM Sans", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: rgb(243, 227, 208);
     overflow-x: hidden;
   }
 
@@ -145,7 +148,7 @@
   /* Date picker theme */
   input[type="date"],
   input[type="month"] {
-    color-scheme: light;
+    color-scheme: inherit;
   }
 
   input[type="date"]::-webkit-calendar-picker-indicator,
@@ -230,8 +233,9 @@
 
 /* Feature card */
 .ff-card {
-  background: rgb(243, 227, 208);
-  border: 1px solid rgba(210, 196, 180, 0.75);
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
   border-radius: 12px;
   padding: 1.75rem;
   transition:
@@ -240,8 +244,8 @@
 }
 
 .ff-card:hover {
-  box-shadow: 0 6px 28px rgba(129, 166, 198, 0.2);
-  border-color: rgba(129, 166, 198, 0.45);
+  box-shadow: 0 10px 34px hsl(var(--primary) / 0.18);
+  border-color: hsl(var(--primary) / 0.45);
 }
 
 /* Stat card */
@@ -277,15 +281,16 @@
 
 /* Testimonial card */
 .ff-testimonial {
-  background: rgb(243, 227, 208);
-  border: 1px solid rgba(210, 196, 180, 0.75);
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
   border-radius: 12px;
   padding: 1.75rem;
   transition: box-shadow 0.25s ease;
 }
 
 .ff-testimonial:hover {
-  box-shadow: 0 6px 28px rgba(129, 166, 198, 0.18);
+  box-shadow: 0 10px 34px hsl(var(--primary) / 0.16);
 }
 
 /* Section heading in serif */
@@ -321,9 +326,14 @@
 
 /* CTA Banner gradient */
 .ff-cta-banner {
-  background: linear-gradient(135deg, rgb(243, 227, 208) 0%, rgb(210, 196, 180) 50%, rgb(170, 205, 220) 100%);
-  border-top: 1px solid rgba(129, 166, 198, 0.2);
-  border-bottom: 1px solid rgba(129, 166, 198, 0.2);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--background)) 0%,
+    hsl(var(--secondary) / 0.75) 50%,
+    hsl(var(--accent) / 0.6) 100%
+  );
+  border-top: 1px solid hsl(var(--border));
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 /* Divider line */
@@ -335,12 +345,12 @@
 
 /* Subtle dashboard mockup ring */
 .ff-mockup-ring {
-  border: 1px solid rgba(129, 166, 198, 0.35);
+  border: 1px solid hsl(var(--border));
   border-radius: 16px;
-  background: linear-gradient(145deg, rgb(243, 227, 208), rgb(210, 196, 180));
+  background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--secondary) / 0.65));
   box-shadow:
-    0 16px 52px rgba(129, 166, 198, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    0 16px 52px hsl(var(--primary) / 0.16),
+    inset 0 1px 0 hsl(var(--foreground) / 0.06);
 }
 
 /* ===================== ANIMATIONS ===================== */

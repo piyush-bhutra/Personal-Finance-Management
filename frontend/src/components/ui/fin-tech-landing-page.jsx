@@ -1,5 +1,8 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { InfiniteGridBackground } from "./the-infinite-grid";
+import { GlowingShadow } from "./glowing-shadow";
+import { Features8 } from "./features-8";
 
 import {
     PieChart,
@@ -119,21 +122,23 @@ function DashboardMockup() {
 /* ─── Feature card ───────────────────────────────────────────────── */
 function FeatureCard({ icon, title, description }) {
     return (
-        <div className="ff-card ff-reveal">
-            <div className="ff-icon-wrap mb-4">{icon}</div>
-            <h3 style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
-                fontSize: "1.15rem",
-                color: "hsl(var(--foreground))",
-                marginBottom: "0.6rem",
-                lineHeight: 1.25
-            }}>{title}</h3>
-            <p style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: "0.875rem",
-                color: "hsl(var(--primary))",
-                lineHeight: 1.7
-            }}>{description}</p>
+        <div className="ff-reveal">
+            <GlowingShadow contentClassName="ff-card">
+                <div className="ff-icon-wrap mb-4">{icon}</div>
+                <h3 style={{
+                    fontFamily: "'DM Serif Display', Georgia, serif",
+                    fontSize: "1.15rem",
+                    color: "hsl(var(--foreground))",
+                    marginBottom: "0.6rem",
+                    lineHeight: 1.25
+                }}>{title}</h3>
+                <p style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: "0.875rem",
+                    color: "hsl(var(--primary))",
+                    lineHeight: 1.7
+                }}>{description}</p>
+            </GlowingShadow>
         </div>
     );
 }
@@ -196,44 +201,46 @@ function StepItem({ number, title, description }) {
 /* ─── Testimonial card ───────────────────────────────────────────── */
 function TestimonialCard({ quote, name, role, initial }) {
     return (
-        <div className="ff-testimonial ff-reveal">
-            {/* Quote mark */}
-            <div style={{
-                fontFamily: "'DM Serif Display', Georgia, serif",
-                fontSize: "3rem",
-                color: "hsl(var(--primary) / 0.45)",
-                lineHeight: 1,
-                marginBottom: "0.5rem",
-                marginTop: "-0.5rem"
-            }}>"</div>
-            <p style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: "0.9rem",
-                color: "hsl(var(--foreground))",
-                lineHeight: 1.75,
-                marginBottom: "1.25rem",
-                fontStyle: "italic"
-            }}>{quote}</p>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div className="ff-reveal">
+            <GlowingShadow contentClassName="ff-testimonial">
+                {/* Quote mark */}
                 <div style={{
-                    width: "2.25rem",
-                    height: "2.25rem",
-                    borderRadius: "50%",
-                    background: "hsl(var(--primary) / 0.18)",
-                    border: "1px solid hsl(var(--primary) / 0.35)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "hsl(var(--primary))",
-                    fontWeight: 600,
-                    fontSize: "0.85rem",
-                    fontFamily: "'DM Sans', sans-serif"
-                }}>{initial}</div>
-                <div>
-                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", fontWeight: 600, color: "hsl(var(--foreground))" }}>{name}</div>
-                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", color: "hsl(var(--primary))" }}>{role}</div>
+                    fontFamily: "'DM Serif Display', Georgia, serif",
+                    fontSize: "3rem",
+                    color: "hsl(var(--primary) / 0.45)",
+                    lineHeight: 1,
+                    marginBottom: "0.5rem",
+                    marginTop: "-0.5rem"
+                }}>"</div>
+                <p style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: "0.9rem",
+                    color: "hsl(var(--foreground))",
+                    lineHeight: 1.75,
+                    marginBottom: "1.25rem",
+                    fontStyle: "italic"
+                }}>{quote}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <div style={{
+                        width: "2.25rem",
+                        height: "2.25rem",
+                        borderRadius: "50%",
+                        background: "hsl(var(--primary) / 0.18)",
+                        border: "1px solid hsl(var(--primary) / 0.35)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "hsl(var(--primary))",
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                        fontFamily: "'DM Sans', sans-serif"
+                    }}>{initial}</div>
+                    <div>
+                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", fontWeight: 600, color: "hsl(var(--foreground))" }}>{name}</div>
+                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", color: "hsl(var(--primary))" }}>{role}</div>
+                    </div>
                 </div>
-            </div>
+            </GlowingShadow>
         </div>
     );
 }
@@ -243,80 +250,78 @@ export default function FinanceFlowLandingPage() {
     useReveal();
 
     return (
-        <div style={{ minHeight: "100vh", background: "hsl(var(--background))", color: "hsl(var(--foreground))", overflowX: "hidden" }}>
-
-
-
-            {/* ══ HERO ════════════════════════════════════════════════════ */}
-            <section style={{ padding: "6rem 1.5rem 5rem" }}>
-                <div style={{
-                    maxWidth: "1180px",
-                    margin: "0 auto",
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: "4rem",
-                    alignItems: "center",
-                }}
-                    className="hero-grid"
-                >
-                    {/* Left */}
-                    <div style={{ animation: "ff-fade-up 0.6s ease both" }}>
-                        <div className="ff-label" style={{ marginBottom: "1.25rem" }}>
-                            Personal Finance, Simplified
-                        </div>
-                        <h1 style={{
-                            fontFamily: "'DM Serif Display', Georgia, serif",
-                            fontSize: "clamp(2.6rem, 5vw, 3.75rem)",
-                            color: "hsl(var(--foreground))",
-                            lineHeight: 1.08,
-                            letterSpacing: "-0.02em",
-                            marginBottom: "1.5rem",
-                        }}>
-                            Clarity over<br />
-                            your finances,<br />
-                            <span style={{ color: "hsl(var(--primary))" }}>every day.</span>
-                        </h1>
-                        <p style={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: "1.05rem",
-                            color: "hsl(var(--primary))",
-                            lineHeight: 1.75,
-                            maxWidth: "420px",
-                            marginBottom: "2.25rem",
-                        }}>
-                            Track spending, manage investments, and build wealth — all from one calm, focused dashboard built for everyday people.
-                        </p>
-                        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-                            <Link to="/register" className="ff-btn-accent" id="hero-get-started-btn" style={{ padding: "0.75rem 1.75rem", fontSize: "0.95rem" }}>
-                                Get Started — Free <ArrowUpRight size={16} />
-                            </Link>
-                            <Link to="/about" className="ff-btn-ghost" style={{ padding: "0.75rem 1.35rem", fontSize: "0.95rem" }}>
-                                Learn more
-                            </Link>
-                        </div>
-                        <p style={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: "0.78rem",
-                            color: "hsl(var(--primary))",
-                            marginTop: "1.25rem",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.4rem",
-                        }}>
-                            <ShieldCheck size={13} color="hsl(var(--accent))" /> No credit card required. Bank-grade encryption.
-                        </p>
-                    </div>
-
-                    {/* Right — dashboard mockup */}
+        <InfiniteGridBackground className="min-h-screen bg-background text-foreground">
+            <div style={{ minHeight: "100vh", overflowX: "hidden" }}>
+                {/* HERO */}
+                <section style={{ padding: "6rem 1.5rem 5rem" }}>
                     <div style={{
-                        animation: "ff-fade-up 0.7s 0.15s ease both",
-                        display: "flex",
-                        justifyContent: "center"
-                    }}>
-                        <DashboardMockup />
+                        maxWidth: "1180px",
+                        margin: "0 auto",
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "4rem",
+                        alignItems: "center",
+                    }}
+                        className="hero-grid"
+                    >
+                        {/* Left */}
+                        <div style={{ animation: "ff-fade-up 0.6s ease both" }}>
+                            <div className="ff-label" style={{ marginBottom: "1.25rem" }}>
+                                Personal Finance, Simplified
+                            </div>
+                            <h1 style={{
+                                fontFamily: "'DM Serif Display', Georgia, serif",
+                                fontSize: "clamp(2.6rem, 5vw, 3.75rem)",
+                                color: "hsl(var(--foreground))",
+                                lineHeight: 1.08,
+                                letterSpacing: "-0.02em",
+                                marginBottom: "1.5rem",
+                            }}>
+                                Clarity over<br />
+                                your finances,<br />
+                                <span style={{ color: "hsl(var(--primary))" }}>every day.</span>
+                            </h1>
+                            <p style={{
+                                fontFamily: "'DM Sans', sans-serif",
+                                fontSize: "1.05rem",
+                                color: "hsl(var(--primary))",
+                                lineHeight: 1.75,
+                                maxWidth: "420px",
+                                marginBottom: "2.25rem",
+                            }}>
+                                Track spending, manage investments, and build wealth — all from one calm, focused dashboard built for everyday people.
+                            </p>
+                            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+                                <Link to="/register" className="ff-btn-accent" id="hero-get-started-btn" style={{ padding: "0.75rem 1.75rem", fontSize: "0.95rem" }}>
+                                    Get Started — Free <ArrowUpRight size={16} />
+                                </Link>
+                                <Link to="/about" className="ff-btn-ghost" style={{ padding: "0.75rem 1.35rem", fontSize: "0.95rem" }}>
+                                    Learn more
+                                </Link>
+                            </div>
+                            <p style={{
+                                fontFamily: "'DM Sans', sans-serif",
+                                fontSize: "0.78rem",
+                                color: "hsl(var(--primary))",
+                                marginTop: "1.25rem",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.4rem",
+                            }}>
+                                <ShieldCheck size={13} color="hsl(var(--accent))" /> No credit card required. Bank-grade encryption.
+                            </p>
+                        </div>
+
+                        {/* Right — dashboard mockup */}
+                        <div style={{
+                            animation: "ff-fade-up 0.7s 0.15s ease both",
+                            display: "flex",
+                            justifyContent: "center"
+                        }}>
+                            <DashboardMockup />
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
             {/* ══ STATS STRIP ════════════════════════════════════════════ */}
             <section style={{
@@ -346,67 +351,7 @@ export default function FinanceFlowLandingPage() {
             </section>
 
             {/* ══ FEATURES ════════════════════════════════════════════════ */}
-            <section style={{ padding: "6rem 1.5rem" }}>
-                <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
-                    <div className="ff-reveal" style={{ maxWidth: "560px", marginBottom: "3.5rem" }}>
-                        <div className="ff-label" style={{ marginBottom: "0.85rem" }}>What you get</div>
-                        <h2 style={{
-                            fontFamily: "'DM Serif Display', Georgia, serif",
-                            fontSize: "clamp(2rem, 3.5vw, 2.75rem)",
-                            color: "hsl(var(--foreground))",
-                            lineHeight: 1.12,
-                            marginBottom: "1rem",
-                        }}>
-                            Everything you need to manage your money
-                        </h2>
-                        <p style={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: "0.95rem",
-                            color: "hsl(var(--primary))",
-                            lineHeight: 1.75
-                        }}>
-                            Built around how real people actually think about money — not how banks do.
-                        </p>
-                    </div>
-
-                    <div style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(3, 1fr)",
-                        gap: "1.25rem",
-                    }} className="features-grid">
-                        <FeatureCard
-                            icon={<PieChart size={17} />}
-                            title="Expense Tracking"
-                            description="Categorize daily spending automatically and see exactly where every rupee goes — weekly, monthly, or by category."
-                        />
-                        <FeatureCard
-                            icon={<Wallet size={17} />}
-                            title="Smart Budgeting"
-                            description="Set realistic budgets per category and receive clear warnings before you overspend — no surprises at month end."
-                        />
-                        <FeatureCard
-                            icon={<TrendingUp size={17} />}
-                            title="Investment Management"
-                            description="Track one-time and recurring investments. Monitor active positions and visualize realized returns over time."
-                        />
-                        <FeatureCard
-                            icon={<BarChart3 size={17} />}
-                            title="Net Worth Overview"
-                            description="Watch your net worth evolve as expenses, investments, and returns shift. One clear number. Always current."
-                        />
-                        <FeatureCard
-                            icon={<FileText size={17} />}
-                            title="Reports & Exports"
-                            description="Generate detailed PDF and CSV reports for tax season, personal reviews, or sharing with a financial advisor."
-                        />
-                        <FeatureCard
-                            icon={<ShieldCheck size={17} />}
-                            title="Bank-Grade Security"
-                            description="Your data is encrypted end-to-end. We never store banking credentials and comply with the highest security standards."
-                        />
-                    </div>
-                </div>
-            </section>
+            <Features8 />
 
             {/* ══ HOW IT WORKS ════════════════════════════════════════════ */}
             <section style={{
@@ -581,7 +526,8 @@ export default function FinanceFlowLandingPage() {
                     }
                 }
             `}</style>
-        </div>
+            </div>
+        </InfiniteGridBackground>
     );
 }
 

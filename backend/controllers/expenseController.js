@@ -3,15 +3,91 @@ const ExpensePlan = require('../models/ExpensePlan');
 const ExpenseEntry = require('../models/ExpenseEntry');
 const { startOfMonth, monthsBetween } = require('../utils/calc');
 
+const backfillExpenseEntries = async (plan) => {
+    if (plan.expenseMode !== 'recurring') return;
+
+    const today = new Date();
+    const currentMonthStart = startOfMonth(today);
+
+    // ── GUARD: skip if already backfilled this calendar month ──────────────
+    if (plan.lastBackfilledAt && startOfMonth(plan.lastBackfilledAt) >= currentMonthStart) {
+        return;
+    }
+
+    // Get the most recent active entry
+    const latestEntry = await ExpenseEntry.findOne({ plan: plan._id, isActive: true }).sort({ date: -1 });
+
+    let startDateToUse = plan.startDate;
+    if (latestEntry) {
+        const nextMonth = new Date(latestEntry.date);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        startDateToUse = startOfMonth(nextMonth);
+    } else {
+        startDateToUse = startOfMonth(plan.startDate);
+    }
+
+    if (startDateToUse > currentMonthStart) return;
+
+    const monthsToFill = monthsBetween(startDateToUse, today);
+
+    const existingEntries = await ExpenseEntry.find({
+        plan: plan._id,
+        date: { $gte: startDateToUse, $lte: currentMonthStart }
+    }).lean();
+
+    const existingDates = new Set(existingEntries.map(e => String(new Date(e.date).getTime())));
+
+    const entriesToInsert = [];
+    for (const monthDate of monthsToFill) {
+        if (!existingDates.has(String(monthDate.getTime()))) {
+            entriesToInsert.push({
+                plan: plan._id,
+                user: plan.user,
+                amount: plan.monthlyAmount,
+                date: monthDate,
+                isActive: true,
+            });
+        }
+    }
+
+    if (entriesToInsert.length > 0) {
+        await ExpenseEntry.insertMany(entriesToInsert);
+    }
+
+    // ── Stamp the plan so we skip backfill for the rest of this month ───────
+    await plan.updateOne({ lastBackfilledAt: today });
+};
+
 /* ─────────────────────────────────────────────────────────────
    GET /api/expenses
    Returns all active expense plans for the user, with their entries.
+   Query params (optional): fromDate, toDate — ISO date strings.
+   Defaults to current month when neither is supplied.
 ───────────────────────────────────────────────────────────── */
 const getExpenses = asyncHandler(async (req, res) => {
     const plans = await ExpensePlan.find({ user: req.user.id, isActive: true });
 
+    await Promise.all(plans.map(async (plan) => {
+        if (plan.expenseMode === 'recurring') {
+            await backfillExpenseEntries(plan);
+        }
+    }));
+
+    // Build date filter — default to current month
+    const now = new Date();
+    const defaultFrom = startOfMonth(now);
+    const defaultTo = new Date(defaultFrom);
+    defaultTo.setMonth(defaultTo.getMonth() + 1);
+
+    const from = req.query.fromDate ? new Date(req.query.fromDate) : defaultFrom;
+    const to = req.query.toDate ? new Date(req.query.toDate) : defaultTo;
+
     const planIds = plans.map(p => p._id);
-    const allEntries = await ExpenseEntry.find({ plan: { $in: planIds }, isActive: true }).sort({ date: 1 });
+    const allEntries = await ExpenseEntry.find({
+        plan: { $in: planIds },
+        isActive: true,
+        date: { $gte: from, $lt: to },
+    }).sort({ date: 1 });
 
     const entriesByPlanId = {};
     for (const entry of allEntries) {

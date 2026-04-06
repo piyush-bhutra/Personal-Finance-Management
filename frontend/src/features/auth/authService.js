@@ -39,23 +39,11 @@ const updateProfile = async (userData) => {
     return response.data;
 };
 
-const forgotPassword = async (emailData) => {
-    const response = await client.post(API_URL + 'forgot-password', emailData);
-    return response.data;
-};
-
-const resetPassword = async (token, passwordData) => {
-    const response = await client.post(API_URL + 'reset-password/' + token, passwordData);
-    return response.data;
-};
-
 const authService = {
     register,
     logout,
     login,
     updateProfile,
-    forgotPassword,
-    resetPassword,
 };
 
 export default authService;

@@ -4,8 +4,6 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/Login'));
 const RegisterPage = lazy(() => import('./pages/Register'));
-const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword'));
-const ResetPasswordPage = lazy(() => import('./pages/ResetPassword'));
 const AboutPage = lazy(() => import('./pages/About'));
 const SupportPage = lazy(() => import('./pages/Support'));
 const HomePage = lazy(() => import('./pages/Home'));
@@ -36,9 +34,8 @@ const RouteLoadingFallback = () => (
 const Layout = ({ children }) => {
   const location = useLocation();
   // Don't show footer on pure auth pages
-  const noFooterRoutes = ['/login', '/register', '/forgot-password'];
-  const hideFooterOnResetRoute = location.pathname.startsWith('/reset-password/');
-  const showFooter = !noFooterRoutes.includes(location.pathname) && !hideFooterOnResetRoute;
+  const noFooterRoutes = ['/login', '/register'];
+  const showFooter = !noFooterRoutes.includes(location.pathname);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -61,8 +58,6 @@ const App = () => {
             <Route path="/support" element={<SupportPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
             {/* Protected Routes */}
             <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />

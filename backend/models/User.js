@@ -36,6 +36,7 @@ const userSchema = mongoose.Schema(
             required: false,
             enum: ['beginner', 'intermediate', 'advanced'],
         },
+
     },
     {
         timestamps: true,

@@ -25,8 +25,11 @@ const Navbar = ({ variant = "public" }) => {
   }, []);
 
   useEffect(() => {
-    setMobileOpen(false);
-    setDropdownOpen(false);
+    const timer = setTimeout(() => {
+      setMobileOpen(false);
+      setDropdownOpen(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -221,8 +224,8 @@ const Navbar = ({ variant = "public" }) => {
                         transition: "background 0.15s",
                       }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.background =
-                          "rgba(170,205,220,0.2)")
+                      (e.currentTarget.style.background =
+                        "rgba(170,205,220,0.2)")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.background = "transparent")
@@ -260,8 +263,8 @@ const Navbar = ({ variant = "public" }) => {
                         transition: "background 0.15s",
                       }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.background =
-                          "rgba(170,205,220,0.2)")
+                      (e.currentTarget.style.background =
+                        "rgba(170,205,220,0.2)")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.background = "transparent")

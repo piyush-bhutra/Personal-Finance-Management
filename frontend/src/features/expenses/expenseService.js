@@ -2,9 +2,9 @@ import client from '../../api/client';
 
 const API_URL = '/expenses/';
 
-// Get user expenses
-const getExpenses = async () => {
-    const response = await client.get(API_URL);
+// Get user expenses — optional { fromDate, toDate } ISO strings
+const getExpenses = async (params = {}) => {
+    const response = await client.get(API_URL, { params });
     return response.data;
 };
 

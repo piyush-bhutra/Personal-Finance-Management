@@ -52,6 +52,10 @@ const expensePlanSchema = mongoose.Schema(
         stopDate: {
             type: Date,
         },
+        lastBackfilledAt: {
+            type: Date,
+            default: null,
+        },
     },
     { timestamps: true }
 );

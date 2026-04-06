@@ -36,5 +36,7 @@ const expenseEntrySchema = mongoose.Schema(
 // Compound index to efficiently query entries for a plan in date order
 expenseEntrySchema.index({ plan: 1, date: 1 });
 expenseEntrySchema.index({ user: 1, date: 1 });
+// Covers: findOne({ plan, isActive: true }).sort({ date: -1 }) inside backfillExpenseEntries
+expenseEntrySchema.index({ plan: 1, isActive: 1, date: -1 });
 
 module.exports = mongoose.model('ExpenseEntry', expenseEntrySchema);

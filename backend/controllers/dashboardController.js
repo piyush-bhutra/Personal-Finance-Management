@@ -41,24 +41,41 @@ const getMonthRange = (monthStart) => {
 const buildBudgetOverview = async (userId, monthStart) => {
   const { start, end } = getMonthRange(monthStart);
 
-  const [budgets, expenseEntries] = await Promise.all([
+  // Aggregate category totals in the DB — no raw entry documents transferred
+  const [budgets, categoryAgg] = await Promise.all([
     Budget.find({ user: userId, month: start }).sort({ category: 1 }).lean(),
-    ExpenseEntry.find({
-      user: userId,
-      isActive: true,
-      date: { $gte: start, $lt: end },
-    })
-      .populate("plan", "category")
-      .lean(),
+    ExpenseEntry.aggregate([
+      {
+        $match: {
+          user: userId,
+          isActive: true,
+          date: { $gte: start, $lt: end },
+        },
+      },
+      {
+        $lookup: {
+          from: "expenseplans",
+          localField: "plan",
+          foreignField: "_id",
+          as: "planDoc",
+          pipeline: [{ $project: { category: 1 } }],
+        },
+      },
+      {
+        $group: {
+          _id: { $ifNull: [{ $first: "$planDoc.category" }, "Uncategorized"] },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]),
   ]);
 
   const spentByCategory = {};
   let totalSpent = 0;
 
-  for (const entry of expenseEntries) {
-    const amount = Number(entry.amount) || 0;
-    const category = entry.plan?.category || "Uncategorized";
-    spentByCategory[category] = (spentByCategory[category] || 0) + amount;
+  for (const row of categoryAgg) {
+    const amount = Number(row.total) || 0;
+    spentByCategory[row._id] = amount;
     totalSpent += amount;
   }
 
@@ -134,6 +151,7 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
   const activePlans = await InvestmentPlan.find({
     user: req.user.id,
     isActive: true,
+    status: { $ne: "closed" },
   });
   let activeValue = 0;
 
@@ -171,6 +189,7 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
   // Assumption: Value is realized at the principal amount + growth up to today
   const inactivePlans = await InvestmentPlan.find({
     user: req.user.id,
+    isActive: false,
     status: "closed",
   });
   let realizedValue = 0;
@@ -208,15 +227,12 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
     }
   }
 
-  // 3. Calculate Total Expenses
-  const expenses = await ExpenseEntry.find({
-    user: req.user.id,
-    isActive: true,
-  });
-  const totalExpenses = expenses.reduce(
-    (acc, curr) => acc + (Number(curr.amount) || 0),
-    0,
-  );
+  // 3. Calculate Total Expenses via aggregation — no documents transferred
+  const expenseSumResult = await ExpenseEntry.aggregate([
+    { $match: { user: req.user._id, isActive: true } },
+    { $group: { _id: null, total: { $sum: "$amount" } } },
+  ]);
+  const totalExpenses = expenseSumResult.length > 0 ? expenseSumResult[0].total : 0;
 
   // 4. Net Worth (Total Assets)
   const netWorth = activeValue + realizedValue;
@@ -364,17 +380,26 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
     if (to) dateFilter.date.$lte = new Date(to);
   }
 
+  // Each sub-query fetches at most limitNum rows already sorted — Node only
+  // merges two small arrays instead of sorting the full collection history.
+  const dbSortField = sort === "amount" ? "amount" : "date";
+  const dbSortDir = order === "asc" ? 1 : -1;
+  const dbSort = { [dbSortField]: dbSortDir };
+
   let allTransactions = [];
 
-  // 1. Fetch Expenses
+  // 1. Fetch Expenses (capped at limitNum, pre-sorted by DB)
   if (type === "all" || type === "expense") {
     const expenseEntries = await ExpenseEntry.find({
       user: req.user.id,
       isActive: true,
       ...dateFilter,
     })
+      .sort(dbSort)
+      .limit(limitNum)
       .populate("plan", "category description expenseMode")
       .lean();
+
     const formattedExpenses = expenseEntries.map((e) => ({
       id: e._id,
       type: "expense",
@@ -389,14 +414,14 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
     allTransactions.push(...formattedExpenses);
   }
 
-  // 2. Fetch Investments
+  // 2. Fetch Investments (capped at limitNum, pre-sorted by DB)
   if (type === "all" || type === "investment") {
-    // We include active entries as "Invested" events
-    // (Should we also include inactive ones as historical records? Yes, probably.)
     const investmentEntries = await InvestmentEntry.find({
       user: req.user.id,
       ...dateFilter,
     })
+      .sort(dbSort)
+      .limit(limitNum)
       .populate("plan", "assetName type investmentMode")
       .lean();
 
@@ -421,12 +446,17 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
       if (to) stopDateFilter.stopDate.$lte = new Date(to);
     }
 
+    const soldSortField = sort === "amount" ? "realizedValue" : "stopDate";
     const closedPlans = await InvestmentPlan.find({
       user: req.user.id,
+      isActive: false,
       status: "closed",
       stopDate: { $ne: null },
       ...stopDateFilter,
-    }).lean();
+    })
+      .sort({ [soldSortField]: dbSortDir })
+      .limit(limitNum)
+      .lean();
 
     const soldEvents = closedPlans.map((p) => ({
       id: p._id + "_sold",
@@ -439,21 +469,18 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
       asset: p.type,
       mode: "sold",
     }));
-
     allTransactions.push(...soldEvents);
   }
 
-  // 3. Sort
+  // 3. Merge the small arrays and sort only those in Node
   allTransactions.sort((a, b) => {
     if (sort === "amount") {
       return order === "asc" ? a.amount - b.amount : b.amount - a.amount;
-    } else {
-      // Default: date
-      return order === "asc" ? a.date - b.date : b.date - a.date;
     }
+    return order === "asc" ? a.date - b.date : b.date - a.date;
   });
 
-  // 4. Limit
+  // 4. Final cap to requested limit
   allTransactions = allTransactions.slice(0, limitNum);
 
   res.status(200).json(allTransactions);

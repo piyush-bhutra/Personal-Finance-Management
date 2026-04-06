@@ -72,8 +72,9 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
 
   // 1. Expense Trends Over Time (Monthly aggregation)
   const expenseTrends = useMemo(() => {
+    const normalize = (e) => ({ ...e, date: e.date ?? e.startDate, amount: e.amount ?? e.monthlyAmount });
     const trends = {};
-    expenses.forEach((expense) => {
+    expenses.map(normalize).forEach((expense) => {
       const date = new Date(expense.date);
       // Format as YYYY-MM
       const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -90,8 +91,9 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
 
   // 2. Category-wise Expense Distribution
   const categoryDistribution = useMemo(() => {
+    const normalize = (e) => ({ ...e, date: e.date ?? e.startDate, amount: e.amount ?? e.monthlyAmount });
     const distribution = {};
-    expenses.forEach((expense) => {
+    expenses.map(normalize).forEach((expense) => {
       const cat = expense.category || "Other";
       distribution[cat] = (distribution[cat] || 0) + Number(expense.amount);
     });

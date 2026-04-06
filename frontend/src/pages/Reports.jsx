@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Navbar from "../components/Navbar";
 import {
   Card,
@@ -34,7 +34,7 @@ const ReportsPage = () => {
   const [error, setError] = useState("");
   const [investments, setInvestments] = useState([]);
   const [expenses, setExpenses] = useState([]);
-  const [investmentTransactions, setInvestmentTransactions] = useState([]);
+  const [budgets, setBudgets] = useState([]);
 
   const fromDate = useMemo(() => new Date(from), [from]);
   const toDate = useMemo(() => new Date(to), [to]);
@@ -49,51 +49,68 @@ const ReportsPage = () => {
     setTo(toISODate(endOfMonth(year, monthIndex)));
   }, [rangeMode, selectedMonth]);
 
+  const debounceRef = useRef(null);
+
   useEffect(() => {
     if (!from || !to) return;
     if (fromDate > toDate) return;
 
-    const fetchData = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const [txData, expenseData, investmentData] = await Promise.all([
-          dashboardService.getRecentTransactions({
-            type: "investment",
-            sort: "date",
-            order: "desc",
-            limit: 5000,
-            from: fromDate.toISOString(),
-            to: toDate.toISOString(),
-          }),
-          expenseService.getExpenses(),
-          investmentService.getInvestments(),
-        ]);
+    // Debounce: wait 600 ms after the last date change before fetching
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
-        setInvestmentTransactions(txData || []);
-        setExpenses(expenseData || []);
-        setInvestments(investmentData || []);
-      } catch {
-        setError("Could not load reports right now. Please try again.");
-      } finally {
-        setLoading(false);
-      }
+    debounceRef.current = setTimeout(async () => {
+      const fetchData = async () => {
+        setLoading(true);
+        setError("");
+        try {
+          const [expenseData, investmentData, budgetData] = await Promise.all([
+            expenseService.getExpenses({
+              fromDate: fromDate.toISOString(),
+              toDate: toDate.toISOString(),
+            }),
+            investmentService.getInvestments({
+              fromDate: fromDate.toISOString(),
+              toDate: toDate.toISOString(),
+            }),
+            dashboardService.getBudgets(rangeMode === "month" ? { month: selectedMonth } : {}),
+          ]);
+
+          setExpenses(expenseData || []);
+          setInvestments(investmentData || []);
+          setBudgets(budgetData?.categories || []);
+        } catch {
+          setError("Could not load reports right now. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchData();
+    }, 600);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-
-    fetchData();
-  }, [from, to, fromDate, toDate]);
+  }, [from, to, fromDate, toDate, rangeMode, selectedMonth]);
 
   const filteredExpenses = useMemo(() => {
-    return expenses.filter((e) => {
+    const normalize = (e) => ({ ...e, date: e.date ?? e.startDate, amount: e.amount ?? e.monthlyAmount });
+    return expenses.map(normalize).filter((e) => {
       const date = new Date(e.date);
       return date >= fromDate && date <= toDate;
     });
   }, [expenses, fromDate, toDate]);
 
   const monthlySummary = useMemo(() => {
-    const realizedIncome = investmentTransactions
-      .filter((tx) => tx.mode === "sold" || tx.category === "Investment Return")
-      .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+    // Derive realized income from closed investment plans whose stopDate
+    // falls within the selected date range — no separate API call needed.
+    const realizedIncome = investments
+      .filter((plan) => {
+        if (plan.status !== "closed" || !plan.stopDate) return false;
+        const stopDate = new Date(plan.stopDate);
+        return stopDate >= fromDate && stopDate <= toDate;
+      })
+      .reduce((sum, plan) => sum + Number(plan.realizedValue || 0), 0);
 
     const totalExpenses = filteredExpenses.reduce(
       (sum, expense) => sum + Number(expense.amount || 0),
@@ -105,7 +122,7 @@ const ReportsPage = () => {
       totalExpenses,
       netSavings: realizedIncome - totalExpenses,
     };
-  }, [investmentTransactions, filteredExpenses]);
+  }, [investments, filteredExpenses, fromDate, toDate]);
 
   const performance = useMemo(() => {
     const activePlans = investments.filter((plan) => plan.status !== "closed");
@@ -141,10 +158,17 @@ const ReportsPage = () => {
       .sort((a, b) => b.total - a.total);
   }, [filteredExpenses]);
 
+  const budgetMap = useMemo(() => {
+    const map = {};
+    budgets.forEach((b) => {
+      map[b.category] = b;
+    });
+    return map;
+  }, [budgets]);
+
   const hasNoData =
     !loading &&
     investments.length === 0 &&
-    investmentTransactions.length === 0 &&
     filteredExpenses.length === 0;
 
   const savingsRate =
@@ -256,9 +280,8 @@ const ReportsPage = () => {
                 <CardContent className="p-5">
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Net Savings</p>
                   <p
-                    className={`mt-2 text-2xl font-semibold tabular-nums ${
-                      monthlySummary.netSavings >= 0 ? "text-accent" : "text-primary"
-                    }`}
+                    className={`mt-2 text-2xl font-semibold tabular-nums ${monthlySummary.netSavings >= 0 ? "text-accent" : "text-primary"
+                      }`}
                   >
                     {formatCurrency(monthlySummary.netSavings)}
                   </p>
@@ -306,11 +329,10 @@ const ReportsPage = () => {
                   <p className="flex justify-between border-t pt-2">
                     <span>Net Savings</span>
                     <span
-                      className={`font-semibold ${
-                        monthlySummary.netSavings >= 0
-                          ? "text-accent"
-                          : "text-primary"
-                      }`}
+                      className={`font-semibold ${monthlySummary.netSavings >= 0
+                        ? "text-accent"
+                        : "text-primary"
+                        }`}
                     >
                       {formatCurrency(monthlySummary.netSavings)}
                     </span>
@@ -352,9 +374,8 @@ const ReportsPage = () => {
                   <p className="flex justify-between border-t pt-2">
                     <span>Difference</span>
                     <span
-                      className={`font-semibold ${
-                        performance.delta >= 0 ? "text-accent" : "text-primary"
-                      }`}
+                      className={`font-semibold ${performance.delta >= 0 ? "text-accent" : "text-primary"
+                        }`}
                     >
                       {formatCurrency(performance.delta)}
                     </span>
@@ -396,27 +417,59 @@ const ReportsPage = () => {
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    {expenseByCategory.map((item) => (
-                      <div key={item.category} className="space-y-1.5">
-                        <div className="flex items-center justify-between text-sm">
-                          <span>{item.category}</span>
-                          <span className="font-semibold tabular-nums">
-                            {formatCurrency(item.total)}
-                          </span>
+                    {expenseByCategory.map((item) => {
+                      const b = budgetMap[item.category];
+                      const hasBudget = !!b;
+                      let fillPercent = 0;
+                      let barColor = "bg-primary";
+
+                      if (hasBudget) {
+                        const utilization = (item.total / b.limit) * 100;
+                        fillPercent = Math.min(100, utilization);
+                        if (utilization > 100) barColor = "bg-red-500";
+                        else if (utilization > 80) barColor = "bg-amber-500";
+                      }
+
+                      return (
+                        <div key={item.category} className="space-y-1.5">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>{item.category}</span>
+                            <span className="font-semibold tabular-nums">
+                              {formatCurrency(item.total)}
+                            </span>
+                          </div>
+
+                          {!hasBudget ? (
+                            <div className="h-2 w-full rounded-full bg-secondary/45 overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-primary"
+                                style={{
+                                  width: `${Math.min(
+                                    100,
+                                    (item.total / (expenseByCategory[0]?.total || 1)) * 100,
+                                  )}%`,
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex justify-between text-xs text-muted-foreground mt-1 mb-1">
+                                <span>Budget Utilization</span>
+                                <span>
+                                  {formatCurrency(item.total)} of {formatCurrency(b.limit)}
+                                </span>
+                              </div>
+                              <div className="h-2 w-full rounded-full bg-secondary/45 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${barColor}`}
+                                  style={{ width: `${fillPercent}%` }}
+                                />
+                              </div>
+                            </>
+                          )}
                         </div>
-                        <div className="h-2 w-full rounded-full bg-secondary/45 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-primary"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                (item.total / (expenseByCategory[0]?.total || 1)) * 100,
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>

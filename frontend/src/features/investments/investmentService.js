@@ -2,9 +2,9 @@ import client from '../../api/client';
 
 const API_URL = '/investments/';
 
-/** Fetch all plans with computed totals */
-const getInvestments = async () => {
-    const response = await client.get(API_URL);
+/** Fetch all plans with computed totals — optional { fromDate, toDate } ISO strings */
+const getInvestments = async (params = {}) => {
+    const response = await client.get(API_URL, { params });
     return response.data;
 };
 

@@ -32,6 +32,36 @@ import expenseService from "../features/expenses/expenseService";
 import investmentService from "../features/investments/investmentService";
 import authService from "../features/auth/authService";
 
+const NavButton = ({
+  id,
+  label,
+  icon,
+  isActive,
+  onClick,
+  isDestructive = false,
+}) => {
+  const Icon = icon;
+  return (
+    <button
+      onClick={() => onClick(id)}
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all w-full text-left
+        ${isActive && !isDestructive ? "bg-secondary/80 text-secondary-foreground font-medium shadow-sm" : ""}
+        ${!isActive && !isDestructive ? "text-muted-foreground hover:bg-secondary/40" : ""}
+        ${isDestructive && isActive ? "bg-primary/10 text-primary font-medium" : ""}
+        ${isDestructive && !isActive ? "text-primary/70 hover:bg-primary/10 hover:text-primary" : ""}
+      `}
+    >
+      <Icon
+        className={`w-5 h-5 ${isActive && !isDestructive ? "text-primary" : ""}`}
+      />
+      <div className="flex-1">{label}</div>
+      {isActive && !isDestructive && (
+        <ChevronRight className="w-4 h-4 opacity-50" />
+      )}
+    </button>
+  );
+};
+
 const ProfilePage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -161,48 +191,48 @@ const ProfilePage = () => {
   // Formatting Member Since (Month + Year only)
   const memberSinceStr = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-IN", {
-        year: "numeric",
-        month: "long",
-      })
+      year: "numeric",
+      month: "long",
+    })
     : "Unknown Date";
 
-    const ageLabel = (() => {
-        if (!user.dateOfBirth) return 'Not provided';
-        const dob = new Date(user.dateOfBirth);
-        if (Number.isNaN(dob.getTime())) return 'Not provided';
-        const today = new Date();
-        let years = today.getFullYear() - dob.getFullYear();
-        const m = today.getMonth() - dob.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-            years--;
-        }
-        if (years < 0) return 'Not provided';
-        return `${years} year${years === 1 ? '' : 's'}`;
-    })();
+  const ageLabel = (() => {
+    if (!user.dateOfBirth) return 'Not provided';
+    const dob = new Date(user.dateOfBirth);
+    if (Number.isNaN(dob.getTime())) return 'Not provided';
+    const today = new Date();
+    let years = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      years--;
+    }
+    if (years < 0) return 'Not provided';
+    return `${years} year${years === 1 ? '' : 's'}`;
+  })();
 
-    const accountAgeLabel = (() => {
-        if (!user.createdAt) return 'Account age unavailable';
-        const created = new Date(user.createdAt);
-        const now = new Date();
-        const diffMs = now - created;
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const diffMonths = Math.floor(diffDays / 30.44);
-        const diffYears = Math.floor(diffMonths / 12);
+  const accountAgeLabel = (() => {
+    if (!user.createdAt) return 'Account age unavailable';
+    const created = new Date(user.createdAt);
+    const now = new Date();
+    const diffMs = now - created;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffMonths = Math.floor(diffDays / 30.44);
+    const diffYears = Math.floor(diffMonths / 12);
 
-        if (diffYears >= 1) {
-            const remMonths = diffMonths - diffYears * 12;
-            if (remMonths > 0) {
-                return `Account active for ${diffYears} year${diffYears > 1 ? 's' : ''} and ${remMonths} month${remMonths > 1 ? 's' : ''}`;
-            }
-            return `Account active for ${diffYears} year${diffYears > 1 ? 's' : ''}`;
-        }
-        if (diffMonths >= 1) {
-            return `Account active for ${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
-        }
-        return `Account active for ${diffDays || 1} day${diffDays === 1 ? '' : 's'}`;
-    })();
+    if (diffYears >= 1) {
+      const remMonths = diffMonths - diffYears * 12;
+      if (remMonths > 0) {
+        return `Account active for ${diffYears} year${diffYears > 1 ? 's' : ''} and ${remMonths} month${remMonths > 1 ? 's' : ''}`;
+      }
+      return `Account active for ${diffYears} year${diffYears > 1 ? 's' : ''}`;
+    }
+    if (diffMonths >= 1) {
+      return `Account active for ${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
+    }
+    return `Account active for ${diffDays || 1} day${diffDays === 1 ? '' : 's'}`;
+  })();
 
-    const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
+  const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
 
   const renderContent = () => {
     switch (activeTab) {
@@ -250,51 +280,51 @@ const ProfilePage = () => {
                   </div>
                 )}
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                                    <div className="space-y-2">
-                                        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Full Name</p>
-                                        {isEditing ? (
-                                            <Input
-                                                name="name"
-                                                value={editForm.name}
-                                                onChange={handleEditChange}
-                                                disabled={isSaving}
-                                                className="bg-background"
-                                            />
-                                        ) : (
-                                            <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.name}</p>
-                                        )}
-                                        <p className="text-xs text-muted-foreground mt-1">This is how you appear internally.</p>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Email Address</p>
-                                        {isEditing ? (
-                                            <Input
-                                                name="email"
-                                                type="email"
-                                                value={editForm.email}
-                                                onChange={handleEditChange}
-                                                disabled={isSaving}
-                                                className="bg-background"
-                                            />
-                                        ) : (
-                                            <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.email}</p>
-                                        )}
-                                        <p className="text-xs text-muted-foreground mt-1">This email is used for login.</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Member Since</p>
-                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50 opacity-80 cursor-not-allowed">
-                                            {memberSinceStr}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Account Age</p>
-                                        <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50 opacity-80 cursor-not-allowed">
-                                            {accountAgeLabel}
-                                        </p>
-                                    </div>
-                                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Full Name</p>
+                    {isEditing ? (
+                      <Input
+                        name="name"
+                        value={editForm.name}
+                        onChange={handleEditChange}
+                        disabled={isSaving}
+                        className="bg-background"
+                      />
+                    ) : (
+                      <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.name}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">This is how you appear internally.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Email Address</p>
+                    {isEditing ? (
+                      <Input
+                        name="email"
+                        type="email"
+                        value={editForm.email}
+                        onChange={handleEditChange}
+                        disabled={isSaving}
+                        className="bg-background"
+                      />
+                    ) : (
+                      <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50">{user.email}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">This email is used for login.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Member Since</p>
+                    <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50 opacity-80 cursor-not-allowed">
+                      {memberSinceStr}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Account Age</p>
+                    <p className="text-base font-medium bg-secondary/30 px-3 py-2 rounded-md border border-border/50 opacity-80 cursor-not-allowed">
+                      {accountAgeLabel}
+                    </p>
+                  </div>
+                </div>
 
                 {isEditing && (
                   <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-border/50">
@@ -323,88 +353,88 @@ const ProfilePage = () => {
               </CardContent>
             </Card>
 
-                        {/* Financial Snapshot & Profile Extras */}
-                        <Card className="border-border/50 shadow-sm">
-                            <CardHeader className="px-6 sm:px-10 pt-8">
-                                <CardTitle className="text-xl flex items-center gap-2">
-                                    <Activity className="w-5 h-5 text-primary" />
-                                    Financial Snapshot
-                                </CardTitle>
-                                <CardDescription>An overview of your tracked data.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="px-6 sm:px-10 pb-8">
-                                {loading ? (
-                                    <div className="py-8 text-center text-muted-foreground animate-pulse">Loading snapshot...</div>
-                                ) : (
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                        <div className="space-y-4">
-                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
-                                                <span className="text-muted-foreground text-sm flex items-center gap-2"><CreditCard className="w-4 h-4" /> Expenses</span>
-                                                <span className="text-2xl font-bold">{stats.expensesCount}</span>
-                                            </div>
-                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
-                                                <span className="text-muted-foreground text-sm flex items-center gap-2"><Wallet className="w-4 h-4" /> Assets</span>
-                                                <span className="text-2xl font-bold">{stats.investmentsCount}</span>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <div className="bg-emerald-500/5 border border-emerald-500/20 p-4 rounded-xl flex flex-col gap-1">
-                                                <span className="text-emerald-500/80 text-sm flex items-center gap-2">Active</span>
-                                                <span className="text-2xl font-bold text-emerald-500">{stats.activeInvestments}</span>
-                                            </div>
-                                            <div className="bg-muted/30 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
-                                                <span className="text-muted-foreground text-sm flex items-center gap-2">Closed</span>
-                                                <span className="text-2xl font-bold opacity-70">{stats.closedInvestments}</span>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
-                                                <span className="text-muted-foreground text-sm">Role / Occupation</span>
-                                                <span className="text-base font-medium">
-                                                    {user.occupation || 'Not provided'}
-                                                </span>
-                                            </div>
-                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
-                                                <span className="text-muted-foreground text-sm">Financial Experience</span>
-                                                <span className="text-base font-medium capitalize">
-                                                    {user.investmentExperience || 'Not provided'}
-                                                </span>
-                                            </div>
-                                            <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
-                                                <span className="text-muted-foreground text-sm">Age</span>
-                                                <span className="text-base font-medium">
-                                                    {ageLabel}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+            {/* Financial Snapshot & Profile Extras */}
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader className="px-6 sm:px-10 pt-8">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-primary" />
+                  Financial Snapshot
+                </CardTitle>
+                <CardDescription>An overview of your tracked data.</CardDescription>
+              </CardHeader>
+              <CardContent className="px-6 sm:px-10 pb-8">
+                {loading ? (
+                  <div className="py-8 text-center text-muted-foreground animate-pulse">Loading snapshot...</div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="space-y-4">
+                      <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                        <span className="text-muted-foreground text-sm flex items-center gap-2"><CreditCard className="w-4 h-4" /> Expenses</span>
+                        <span className="text-2xl font-bold">{stats.expensesCount}</span>
+                      </div>
+                      <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                        <span className="text-muted-foreground text-sm flex items-center gap-2"><Wallet className="w-4 h-4" /> Assets</span>
+                        <span className="text-2xl font-bold">{stats.investmentsCount}</span>
+                      </div>
                     </div>
-                );
-            case 'settings':
-                return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <Card className="border-border/50 shadow-sm">
-                            <CardHeader className="px-6 sm:px-10 pt-8">
-                                <CardTitle className="text-xl flex items-center gap-2">
-                                    <Settings className="w-5 h-5 text-primary" />
-                                    Account Preferences
-                                </CardTitle>
-                                <CardDescription>Your localized settings and preferences.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="px-6 sm:px-10 pb-8 grid gap-6">
+                    <div className="space-y-4">
+                      <div className="bg-emerald-500/5 border border-emerald-500/20 p-4 rounded-xl flex flex-col gap-1">
+                        <span className="text-emerald-500/80 text-sm flex items-center gap-2">Active</span>
+                        <span className="text-2xl font-bold text-emerald-500">{stats.activeInvestments}</span>
+                      </div>
+                      <div className="bg-muted/30 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                        <span className="text-muted-foreground text-sm flex items-center gap-2">Closed</span>
+                        <span className="text-2xl font-bold opacity-70">{stats.closedInvestments}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                        <span className="text-muted-foreground text-sm">Role / Occupation</span>
+                        <span className="text-base font-medium">
+                          {user.occupation || 'Not provided'}
+                        </span>
+                      </div>
+                      <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                        <span className="text-muted-foreground text-sm">Financial Experience</span>
+                        <span className="text-base font-medium capitalize">
+                          {user.investmentExperience || 'Not provided'}
+                        </span>
+                      </div>
+                      <div className="bg-secondary/20 border border-border/50 p-4 rounded-xl flex flex-col gap-1">
+                        <span className="text-muted-foreground text-sm">Age</span>
+                        <span className="text-base font-medium">
+                          {ageLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader className="px-6 sm:px-10 pt-8">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-primary" />
+                  Account Preferences
+                </CardTitle>
+                <CardDescription>Your localized settings and preferences.</CardDescription>
+              </CardHeader>
+              <CardContent className="px-6 sm:px-10 pb-8 grid gap-6">
 
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
-                                    <div>
-                                        <p className="font-medium">Currency</p>
-                                        <p className="text-sm text-muted-foreground">The primary currency applied to your portfolio.</p>
-                                    </div>
-                                    <div className="bg-background border border-border px-4 py-2 rounded-md text-sm font-medium">
-                                        ₹ INR
-                                    </div>
-                                </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
+                  <div>
+                    <p className="font-medium">Currency</p>
+                    <p className="text-sm text-muted-foreground">The primary currency applied to your portfolio.</p>
+                  </div>
+                  <div className="bg-background border border-border px-4 py-2 rounded-md text-sm font-medium">
+                    ₹ INR
+                  </div>
+                </div>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-secondary/20 border border-border/50 rounded-xl gap-4">
                   <div>
@@ -529,34 +559,7 @@ const ProfilePage = () => {
     }
   };
 
-  // eslint-disable-next-line no-unused-vars
-  const NavButton = ({
-    id,
-    label,
-    icon: IconComponent,
-    isDestructive = false,
-  }) => {
-    const isActive = activeTab === id;
-    return (
-      <button
-        onClick={() => setActiveTab(id)}
-        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all w-full text-left
-          ${isActive && !isDestructive ? "bg-secondary/80 text-secondary-foreground font-medium shadow-sm" : ""}
-          ${!isActive && !isDestructive ? "text-muted-foreground hover:bg-secondary/40" : ""}
-          ${isDestructive && isActive ? "bg-primary/10 text-primary font-medium" : ""}
-          ${isDestructive && !isActive ? "text-primary/70 hover:bg-primary/10 hover:text-primary" : ""}
-        `}
-      >
-        <IconComponent
-          className={`w-5 h-5 ${isActive && !isDestructive ? "text-primary" : ""}`}
-        />
-        <div className="flex-1">{label}</div>
-        {isActive && !isDestructive && (
-          <ChevronRight className="w-4 h-4 opacity-50" />
-        )}
-      </button>
-    );
-  };
+
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
@@ -571,9 +574,9 @@ const ProfilePage = () => {
         {/* Left Sidebar */}
         <aside className="w-full md:w-64 shrink-0">
           <nav className="flex flex-col gap-2 sticky top-24">
-            <NavButton id="profile" label="Profile" icon={User} />
-            <NavButton id="settings" label="Settings" icon={Settings} />
-            <NavButton id="privacy" label="Data & Privacy" icon={Shield} />
+            <NavButton id="profile" label="Profile" icon={User} isActive={activeTab === "profile"} onClick={setActiveTab} />
+            <NavButton id="settings" label="Settings" icon={Settings} isActive={activeTab === "settings"} onClick={setActiveTab} />
+            <NavButton id="privacy" label="Data & Privacy" icon={Shield} isActive={activeTab === "privacy"} onClick={setActiveTab} />
 
             <div className="my-2 border-t border-border/50"></div>
 
@@ -582,6 +585,8 @@ const ProfilePage = () => {
               label="Account Actions"
               icon={AlertTriangle}
               isDestructive
+              isActive={activeTab === "actions"}
+              onClick={setActiveTab}
             />
           </nav>
         </aside>

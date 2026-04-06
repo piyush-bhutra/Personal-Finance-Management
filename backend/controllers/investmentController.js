@@ -41,8 +41,21 @@ const computePlanSummary = (plan, entries) => {
 const getInvestments = asyncHandler(async (req, res) => {
     const plans = await InvestmentPlan.find({ user: req.user.id, isActive: true });
 
+    // Build date filter — default to current month
+    const now = new Date();
+    const defaultFrom = startOfMonth(now);
+    const defaultTo = new Date(defaultFrom);
+    defaultTo.setMonth(defaultTo.getMonth() + 1);
+
+    const from = req.query.fromDate ? new Date(req.query.fromDate) : defaultFrom;
+    const to = req.query.toDate ? new Date(req.query.toDate) : defaultTo;
+
     const planIds = plans.map(p => p._id);
-    const allEntries = await InvestmentEntry.find({ plan: { $in: planIds }, isActive: true }).sort({ date: 1 });
+    const allEntries = await InvestmentEntry.find({
+        plan: { $in: planIds },
+        isActive: true,
+        date: { $gte: from, $lt: to },
+    }).sort({ date: 1 });
 
     const entriesByPlanId = {};
     for (const entry of allEntries) {
@@ -329,6 +342,7 @@ const stopInvestment = asyncHandler(async (req, res) => {
         plan._id,
         {
             status: 'closed',
+            isActive: false,
             stopDate: new Date(stopDate),
             realizedValue: Number(realizedValue)
         },

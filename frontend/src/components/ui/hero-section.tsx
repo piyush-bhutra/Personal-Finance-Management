@@ -25,8 +25,11 @@ import investmentService from "@/features/investments/investmentService";
 import dashboardService from "@/features/dashboard/dashboardService";
 import { ExpenseChart, PortfolioChart } from "./analytics-charts";
 import { useNavigate } from "react-router-dom";
+// @ts-ignore
 import { formatCurrency, formatDate } from "@/lib/format";
+// @ts-ignore
 import AnalyticsPage from "../../pages/Analytics";
+// @ts-ignore
 import { exportToCSV } from "../../utils/exportToCSV";
 import { Input } from "./input";
 import { Label } from "./label";
@@ -184,7 +187,7 @@ export function HeroSection() {
     } catch (saveError: any) {
       setBudgetStatusMessage(
         saveError.response?.data?.message ||
-          "Could not save budget right now. Please try again.",
+        "Could not save budget right now. Please try again.",
       );
     } finally {
       setBudgetBusy(false);
@@ -201,14 +204,17 @@ export function HeroSection() {
     } catch (deleteError: any) {
       setBudgetStatusMessage(
         deleteError.response?.data?.message ||
-          "Could not delete budget right now. Please try again.",
+        "Could not delete budget right now. Please try again.",
       );
     } finally {
       setBudgetBusy(false);
     }
   };
 
+  const normalize = (e: any) => ({ ...e, date: e.date ?? e.startDate, amount: e.amount ?? e.monthlyAmount });
+
   const monthlyExpenses = expenses
+    .map(normalize)
     .filter((e) => {
       const d = new Date(e.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -229,6 +235,7 @@ export function HeroSection() {
   const monthlyNetSavings = monthlyRealizedIncome - monthlyExpenses;
 
   const expenseByCategory = expenses
+    .map(normalize)
     .filter((e) => {
       const d = new Date(e.date);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
@@ -577,7 +584,7 @@ export function HeroSection() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="h-[350px]">
-                        <ExpenseChart expenses={expenses} />
+                        <ExpenseChart expenses={expenses.map(normalize)} />
                       </CardContent>
                     </Card>
                     <div className="flex justify-end pt-2">
@@ -725,11 +732,10 @@ export function HeroSection() {
                           <p className="flex justify-between border-t pt-2">
                             <span>Remaining (Budgeted)</span>
                             <span
-                              className={`font-semibold tabular-nums ${
-                                Number(budgetOverview.remaining || 0) < 0
-                                  ? "text-primary"
-                                  : "text-accent"
-                              }`}
+                              className={`font-semibold tabular-nums ${Number(budgetOverview.remaining || 0) < 0
+                                ? "text-primary"
+                                : "text-accent"
+                                }`}
                             >
                               {formatCurrency(budgetOverview.remaining || 0)}
                             </span>

@@ -4,50 +4,40 @@ const crypto = require("crypto");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/User");
 
-const RESET_TOKEN_EXPIRY_MS = 15 * 60 * 1000;
-
-const hashResetToken = (token) => {
-  return crypto.createHash("sha256").update(token).digest("hex");
-};
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
+    expiresIn: process.env.JWT_EXPIRES_IN || "30d",
   });
 };
 
-// Generate JWT (hoisted via function declaration so generateUserResponse can safely call it)
-function generateToken(id) {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d',
-    });
-}
-
 // Helper to generate user response
 const generateUserResponse = (user) => {
-    return {
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-        age: user.age,
-        occupation: user.occupation,
-        investmentExperience: user.investmentExperience,
-        dateOfBirth: user.dateOfBirth,
-        createdAt: user.createdAt,
-        token: generateToken(user._id),
-    };
+  return {
+    _id: user.id,
+    name: user.name,
+    email: user.email,
+    age: user.age,
+    occupation: user.occupation,
+    investmentExperience: user.investmentExperience,
+    dateOfBirth: user.dateOfBirth,
+    createdAt: user.createdAt,
+    token: generateToken(user._id),
+  };
 };
 
 // @desc    Register new user
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, age, occupation, investmentExperience, dateOfBirth } = req.body;
+  const { name, email, password, age, occupation, investmentExperience, dateOfBirth } = req.body;
 
   if (!name || !email || !password) {
     res.status(400);
     throw new Error("Please add all fields");
   }
+
+  const normalizedEmail = email.toLowerCase().trim();
 
   // Check if user exists
   const userExists = await User.findOne({ email: normalizedEmail });
@@ -61,16 +51,16 @@ const registerUser = asyncHandler(async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
-    const user = await User.create({
-        name,
-        email,
-        password: hashedPassword,
-        age: typeof age === 'number' ? age : age ? Number(age) : undefined,
-        occupation,
-        investmentExperience,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-    });
+  // Create user
+  const user = await User.create({
+    name,
+    email,
+    password: hashedPassword,
+    age: typeof age === 'number' ? age : age ? Number(age) : undefined,
+    occupation,
+    investmentExperience,
+    dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+  });
 
   if (user) {
     res.status(201).json(generateUserResponse(user));
@@ -100,82 +90,6 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Request password reset token
-// @route   POST /api/users/forgot-password
-// @access  Public
-const forgotPassword = asyncHandler(async (req, res) => {
-  const email = String(req.body.email || "")
-    .trim()
-    .toLowerCase();
-
-  if (!email) {
-    res.status(400);
-    throw new Error("Valid email is required");
-  }
-
-  const genericResponse = {
-    message:
-      "If an account exists for this email, password reset instructions have been generated.",
-  };
-
-  const user = await User.findOne({ email });
-
-  // Avoid account enumeration by always returning success.
-  if (!user) {
-    return res.status(200).json(genericResponse);
-  }
-
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  user.resetPasswordToken = hashResetToken(resetToken);
-  user.resetPasswordExpires = new Date(Date.now() + RESET_TOKEN_EXPIRY_MS);
-  await user.save({ validateBeforeSave: false });
-
-  const frontendBaseUrl =
-    process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173";
-  const sanitizedBase = frontendBaseUrl.replace(/\/+$/, "");
-  const resetUrl = `${sanitizedBase}/reset-password/${resetToken}`;
-
-  // In local/dev environments, return reset link for quick testing.
-  if (process.env.NODE_ENV !== "production") {
-    return res.status(200).json({
-      ...genericResponse,
-      resetToken,
-      resetUrl,
-      expiresInMinutes: RESET_TOKEN_EXPIRY_MS / 60000,
-    });
-  }
-
-  return res.status(200).json(genericResponse);
-});
-
-// @desc    Reset password using token
-// @route   POST /api/users/reset-password/:token
-// @access  Public
-const resetPassword = asyncHandler(async (req, res) => {
-  const rawToken = req.params.token;
-  const { password } = req.body;
-
-  const hashedToken = hashResetToken(rawToken);
-  const user = await User.findOne({
-    resetPasswordToken: hashedToken,
-    resetPasswordExpires: { $gt: new Date() },
-  });
-
-  if (!user) {
-    res.status(400);
-    throw new Error("Reset token is invalid or has expired");
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  user.password = await bcrypt.hash(password, salt);
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpires = undefined;
-  await user.save();
-
-  res.status(200).json({
-    message: "Password reset successful. You can now sign in with your new password.",
-  });
-});
 
 // @desc    Get user data
 // @route   GET /api/users/me
@@ -195,41 +109,22 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       ? String(req.body.email).trim().toLowerCase()
       : user.email;
 
-        user.name = req.body.name || user.name;
-        user.email = req.body.email || user.email;
-        // updatedAt is automatically handled by Mongoose timestamps
-
-        const updatedUser = await user.save();
-
-        res.json(generateUserResponse(updatedUser));
-    } else {
-        res.status(404);
-        throw new Error('User not found');
-    }
-
     user.name = req.body.name || user.name;
     user.email = nextEmail;
     // updatedAt is automatically handled by Mongoose timestamps
 
     const updatedUser = await user.save();
 
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      token: generateToken(updatedUser._id), // Optionally re-issue token (good practice on identity changes)
-    });
+    res.json(generateUserResponse(updatedUser));
   } else {
     res.status(404);
-    throw new Error("User not found");
+    throw new Error('User not found');
   }
 });
 
 module.exports = {
   registerUser,
   loginUser,
-  forgotPassword,
-  resetPassword,
   getMe,
   updateUserProfile,
 };

@@ -127,8 +127,8 @@ const ProfilePage = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/login");
+    authService.logout();
+    navigate("/");
   };
 
   const handleEditChange = (e) => {

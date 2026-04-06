@@ -147,57 +147,38 @@ const buildBudgetOverview = async (userId, monthStart) => {
      - activePlanCount
 ───────────────────────────────────────────────────────────── */
 const getDashboardSummary = asyncHandler(async (req, res) => {
-  // 1. Calculate Active Investments Value
-  const activePlans = await InvestmentPlan.find({
-    user: req.user.id,
-    isActive: true,
-    status: { $ne: "closed" },
-  });
-  let activeValue = 0;
+  // --- Wave 1: fire all independent queries in parallel ---
+  const [activePlans, closedPlans, expenseSumResult, monthlyBudget] =
+    await Promise.all([
+      InvestmentPlan.find({
+        user: req.user.id,
+        isActive: true,
+        status: { $ne: "closed" },
+      }).lean(),
+      InvestmentPlan.find({
+        user: req.user.id,
+        isActive: false,
+        status: "closed",
+      }).lean(),
+      ExpenseEntry.aggregate([
+        { $match: { user: req.user._id, isActive: true } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]),
+      buildBudgetOverview(req.user.id, startOfMonth(new Date())),
+    ]);
 
-  if (activePlans.length > 0) {
-    const activePlanIds = activePlans.map((p) => p._id);
-    const activeEntries = await InvestmentEntry.find({
-      plan: { $in: activePlanIds },
-      isActive: true,
-    });
+  const totalExpenses =
+    expenseSumResult.length > 0 ? expenseSumResult[0].total : 0;
 
-    // Build a map of plan details for quick lookup
-    const activePlanMap = {};
-    for (const p of activePlans) {
-      activePlanMap[p._id] = p;
-    }
+  // --- Wave 2: fetch investment entries (depend on plan IDs from wave 1) ---
+  const activePlanIds = activePlans.map((p) => p._id);
 
-    for (const entry of activeEntries) {
-      const plan = activePlanMap[entry.plan];
-      if (!plan) continue;
-      const entryMonth = startOfMonth(entry.date);
-      const diffMs = new Date() - entryMonth;
-      const ageMonths = Math.max(
-        0,
-        Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44)),
-      );
-      activeValue += compoundValue(
-        entry.amount,
-        plan.expectedReturnRate,
-        ageMonths,
-      );
-    }
-  }
-
-  // 2. Calculate Realized Value from Inactive (Stopped) Plans
-  // Assumption: Value is realized at the principal amount + growth up to today
-  const inactivePlans = await InvestmentPlan.find({
-    user: req.user.id,
-    isActive: false,
-    status: "closed",
-  });
-  let realizedValue = 0;
+  // Separate closed plans: those with an explicit realizedValue vs legacy ones
   const legacyInactivePlanIds = [];
   const inactivePlanMap = {};
+  let realizedValue = 0;
 
-  for (const plan of inactivePlans) {
-    // If plan has an explicit realized value (stopped/sold), use it
+  for (const plan of closedPlans) {
     if (plan.realizedValue !== undefined) {
       realizedValue += plan.realizedValue;
     } else {
@@ -206,40 +187,54 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
     }
   }
 
-  if (legacyInactivePlanIds.length > 0) {
-    const legacyEntries = await InvestmentEntry.find({
-      plan: { $in: legacyInactivePlanIds },
-    });
-    for (const entry of legacyEntries) {
-      const plan = inactivePlanMap[entry.plan];
-      if (!plan) continue;
-      const entryMonth = startOfMonth(entry.date);
-      const diffMs = new Date() - entryMonth;
-      const ageMonths = Math.max(
-        0,
-        Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44)),
-      );
-      realizedValue += compoundValue(
-        entry.amount,
-        plan.expectedReturnRate,
-        ageMonths,
-      );
-    }
+  // Both entry fetches are independent of each other → parallel
+  const [activeEntries, legacyEntries] = await Promise.all([
+    activePlanIds.length > 0
+      ? InvestmentEntry.find({
+        plan: { $in: activePlanIds },
+        isActive: true,
+      }).lean()
+      : Promise.resolve([]),
+    legacyInactivePlanIds.length > 0
+      ? InvestmentEntry.find({
+        plan: { $in: legacyInactivePlanIds },
+      }).lean()
+      : Promise.resolve([]),
+  ]);
+
+  // --- Calculate active investment value ---
+  const activePlanMap = {};
+  for (const p of activePlans) {
+    activePlanMap[p._id] = p;
   }
 
-  // 3. Calculate Total Expenses via aggregation — no documents transferred
-  const expenseSumResult = await ExpenseEntry.aggregate([
-    { $match: { user: req.user._id, isActive: true } },
-    { $group: { _id: null, total: { $sum: "$amount" } } },
-  ]);
-  const totalExpenses = expenseSumResult.length > 0 ? expenseSumResult[0].total : 0;
+  let activeValue = 0;
+  for (const entry of activeEntries) {
+    const plan = activePlanMap[entry.plan];
+    if (!plan) continue;
+    const entryMonth = startOfMonth(entry.date);
+    const diffMs = new Date() - entryMonth;
+    const ageMonths = Math.max(
+      0,
+      Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44)),
+    );
+    activeValue += compoundValue(entry.amount, plan.expectedReturnRate, ageMonths);
+  }
 
-  // 4. Net Worth (Total Assets)
+  // --- Calculate legacy realized value ---
+  for (const entry of legacyEntries) {
+    const plan = inactivePlanMap[entry.plan];
+    if (!plan) continue;
+    const entryMonth = startOfMonth(entry.date);
+    const diffMs = new Date() - entryMonth;
+    const ageMonths = Math.max(
+      0,
+      Math.round(diffMs / (1000 * 60 * 60 * 24 * 30.44)),
+    );
+    realizedValue += compoundValue(entry.amount, plan.expectedReturnRate, ageMonths);
+  }
+
   const netWorth = activeValue + realizedValue;
-  const monthlyBudget = await buildBudgetOverview(
-    req.user.id,
-    startOfMonth(new Date()),
-  );
 
   res.status(200).json({
     netWorth: Math.round(netWorth),

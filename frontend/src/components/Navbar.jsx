@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { BarChart3, LogOut, Menu, User, ChevronDown, X } from "lucide-react";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { motion } from "framer-motion";
+import authService from "../features/auth/authService";
 
 const MotionLink = motion(Link);
 
@@ -14,8 +15,8 @@ const Navbar = ({ variant = "public" }) => {
   const dropdownRef = useRef(null);
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/login");
+    authService.logout();
+    navigate("/");
   };
 
   useEffect(() => {

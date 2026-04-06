@@ -207,7 +207,6 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
     <div
       className={`bg-background text-foreground pb-20 ${isEmbedded ? "" : "min-h-screen"}`}
     >
-      {!isEmbedded && <Navbar variant="auth" />}
       <div
         className={`container mx-auto max-w-7xl px-3 sm:px-4 space-y-8 ${isEmbedded ? "py-2" : "py-8 sm:py-10"}`}
       >

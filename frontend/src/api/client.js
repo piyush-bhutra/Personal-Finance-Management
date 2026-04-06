@@ -6,6 +6,7 @@ const apiBase = import.meta.env.VITE_API_URL
 
 const client = axios.create({
     baseURL: apiBase,
+    timeout: 10000, // 10 seconds — prevents indefinite hanging on slow responses
 });
 
 const getStoredUser = () => {
@@ -31,6 +32,21 @@ client.interceptors.request.use(
         return config;
     },
     (error) => Promise.reject(error)
+);
+
+// Response interceptor — handle auth expiry gracefully
+client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // JWT expired or invalid — clear stale auth and force re-login
+            localStorage.removeItem('user');
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
 );
 
 export default client;

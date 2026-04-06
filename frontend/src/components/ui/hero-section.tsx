@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BorderBeam } from "./border-beam";
+import { motion } from "framer-motion";
 import { TracingBeam } from "./tracing-beam";
 import {
   Card,
@@ -373,112 +374,120 @@ export function HeroSection() {
                   <TabsContent value="overview" className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                       {/* Total Revenue */}
-                      <Card className="relative overflow-hidden">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium">
-                            Total Net Worth
-                          </CardTitle>
-                          <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold tabular-nums">
-                            {formatCurrency(dashboardData.netWorth)}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Active Investments + Realized Returns
-                          </p>
-                        </CardContent>
-                        <BorderBeam
-                          size={100}
-                          duration={10}
-                          delay={0}
-                          borderWidth={1.5}
-                          colorFrom="rgb(170,205,220)"
-                          colorTo="rgb(129,166,198)"
-                        />
-                      </Card>
+                      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.0 }}>
+                        <Card className="relative overflow-hidden">
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                              Total Net Worth
+                            </CardTitle>
+                            <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold tabular-nums">
+                              {formatCurrency(dashboardData.netWorth)}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Active Investments + Realized Returns
+                            </p>
+                          </CardContent>
+                          <BorderBeam
+                            size={100}
+                            duration={10}
+                            delay={0}
+                            borderWidth={1.5}
+                            colorFrom="hsl(var(--accent))"
+                            colorTo="hsl(var(--primary))"
+                          />
+                        </Card>
+                      </motion.div>
 
                       {/* Subscriptions */}
-                      <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium">
-                            Monthly Expenses
-                          </CardTitle>
-                          <CreditCard className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold tabular-nums">
-                            {formatCurrency(dashboardData.totalExpenses)}
-                          </div>
-                          <p className="text-xs text-muted-foreground mb-1">
-                            {expenses.length > 0
-                              ? `${expenses.length} transaction${expenses.length !== 1 ? "s" : ""} recorded`
-                              : "No expenses logged yet"}
-                          </p>
-                          {expenses.length === 0 && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-6 text-xs w-full mt-1"
-                              onClick={() => navigate("/expenses")}
-                            >
-                              <Plus className="mr-1 h-3 w-3" /> Add Expense
-                            </Button>
-                          )}
-                        </CardContent>
-                      </Card>
+                      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+                        <Card>
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                              Monthly Expenses
+                            </CardTitle>
+                            <CreditCard className="h-4 w-4 text-muted-foreground" />
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold tabular-nums">
+                              {formatCurrency(dashboardData.totalExpenses)}
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-1">
+                              {expenses.length > 0
+                                ? `${expenses.length} transaction${expenses.length !== 1 ? "s" : ""} recorded`
+                                : "No expenses logged yet"}
+                            </p>
+                            {expenses.length === 0 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-6 text-xs w-full mt-1"
+                                onClick={() => navigate("/expenses")}
+                              >
+                                <Plus className="mr-1 h-3 w-3" /> Add Expense
+                              </Button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </motion.div>
 
                       {/* Sales */}
-                      <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium">
-                            Total Investments
-                          </CardTitle>
-                          <IndianRupee className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold tabular-nums">
-                            {formatCurrency(
-                              dashboardData.totalActiveInvestments,
+                      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
+                        <Card>
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                              Total Investments
+                            </CardTitle>
+                            <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold tabular-nums">
+                              {formatCurrency(
+                                dashboardData.totalActiveInvestments,
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-1">
+                              {dashboardData.activePlanCount > 0
+                                ? `${dashboardData.activePlanCount} active plan${dashboardData.activePlanCount !== 1 ? "s" : ""}`
+                                : "No active investments"}
+                            </p>
+                            {dashboardData.activePlanCount === 0 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-6 text-xs w-full mt-1"
+                                onClick={() => navigate("/investments")}
+                              >
+                                <Plus className="mr-1 h-3 w-3" /> Add Investment
+                              </Button>
                             )}
-                          </div>
-                          <p className="text-xs text-muted-foreground mb-1">
-                            {dashboardData.activePlanCount > 0
-                              ? `${dashboardData.activePlanCount} active plan${dashboardData.activePlanCount !== 1 ? "s" : ""}`
-                              : "No active investments"}
-                          </p>
-                          {dashboardData.activePlanCount === 0 && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-6 text-xs w-full mt-1"
-                              onClick={() => navigate("/investments")}
-                            >
-                              <Plus className="mr-1 h-3 w-3" /> Add Investment
-                            </Button>
-                          )}
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
 
                       {/* Active Investments */}
-                      <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium">
-                            Active Investments
-                          </CardTitle>
-                          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-2xl font-bold">
-                            {dashboardData.activePlanCount}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {dashboardData.activePlanCount > 0
-                              ? "Active investment plans"
-                              : "No active plans"}
-                          </p>
-                        </CardContent>
-                      </Card>
+                      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.3 }}>
+                        <Card>
+                          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                              Active Investments
+                            </CardTitle>
+                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-2xl font-bold">
+                              {dashboardData.activePlanCount}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {dashboardData.activePlanCount > 0
+                                ? "Active investment plans"
+                                : "No active plans"}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">

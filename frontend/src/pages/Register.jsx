@@ -5,7 +5,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import authService from '../features/auth/authService';
-import Navbar from '../components/Navbar';
+
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -63,9 +63,9 @@ export default function RegisterPage() {
         }
     };
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar variant="public" />
+    return (
+        <div className="min-h-screen bg-background flex flex-col">
+
 
             <div className="flex-1 flex items-center justify-center px-4">
                 <Card className="w-full max-w-sm">

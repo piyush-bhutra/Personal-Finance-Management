@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion as Motion } from "framer-motion";
 import { Edit2, Plus, Trash2, StopCircle, Download } from "lucide-react";
-import Navbar from "../components/Navbar";
+
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -292,7 +292,7 @@ export default function ExpensesPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navbar variant="auth" />
+
       <div className="container mx-auto py-10 px-4 max-w-6xl space-y-6">
         <Motion.div
           initial={{ opacity: 0, y: 20 }}

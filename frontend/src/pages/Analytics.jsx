@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import Navbar from "../components/Navbar";
+
 import {
   Card,
   CardContent,
@@ -25,16 +25,20 @@ import {
 import expenseService from "../features/expenses/expenseService";
 import investmentService from "../features/investments/investmentService";
 
-const COLORS = [
-  "rgb(129,166,198)",
-  "rgb(170,205,220)",
-  "rgb(243,227,208)",
-  "rgb(210,196,180)",
-  "rgb(129,166,198)",
-  "rgb(170,205,220)",
-  "rgb(210,196,180)",
-  "rgb(243,227,208)",
-];
+const getThemeColors = () => {
+  if (typeof document === "undefined") return ["#000", "#000", "#000", "#000", "#000", "#000", "#000", "#000"];
+  const styles = getComputedStyle(document.documentElement);
+  return [
+    `hsl(${styles.getPropertyValue('--chart-1')})`,
+    `hsl(${styles.getPropertyValue('--chart-2')})`,
+    `hsl(${styles.getPropertyValue('--chart-3')})`,
+    `hsl(${styles.getPropertyValue('--chart-4')})`,
+    `hsl(${styles.getPropertyValue('--chart-5')})`,
+    `hsl(${styles.getPropertyValue('--chart-1')})`,
+    `hsl(${styles.getPropertyValue('--chart-2')})`,
+    `hsl(${styles.getPropertyValue('--chart-3')})`,
+  ];
+};
 
 // Helper to format currency
 const formatCurrency = (value) =>
@@ -49,6 +53,8 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
   const [error, setError] = useState("");
   const [expenses, setExpenses] = useState([]);
   const [investments, setInvestments] = useState([]);
+
+  const [chartColors, setChartColors] = useState(getThemeColors());
 
   useEffect(() => {
     const fetchAnalyticsData = async () => {
@@ -68,6 +74,11 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
       }
     };
     fetchAnalyticsData();
+
+    // Re-evaluate colors on theme change
+    const observer = new MutationObserver(() => setChartColors(getThemeColors()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
   }, []);
 
   // 1. Expense Trends Over Time (Monthly aggregation)
@@ -171,7 +182,7 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
       <div
         className={`flex flex-col bg-background text-foreground ${isEmbedded ? "h-full" : "min-h-screen"}`}
       >
-        {!isEmbedded && <Navbar variant="auth" />}
+
         <div className="flex-1 flex items-center justify-center">
           <p className="text-muted-foreground">Loading analytics...</p>
         </div>
@@ -184,7 +195,7 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
       <div
         className={`flex flex-col bg-background text-foreground ${isEmbedded ? "h-full" : "min-h-screen"}`}
       >
-        {!isEmbedded && <Navbar variant="auth" />}
+
         <div className="flex-1 flex items-center justify-center">
           <p className="text-primary">{error}</p>
         </div>
@@ -236,21 +247,15 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
                     margin={{ top: 10, right: 30, left: 20, bottom: 0 }}
                   >
                     <defs>
-                      <linearGradient
-                        id="colorAmount"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
+                      <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
                         <stop
                           offset="5%"
-                          stopColor="rgb(129,166,198)"
-                          stopOpacity={0.8}
+                          stopColor={chartColors[0]}
+                          stopOpacity={0.4}
                         />
                         <stop
                           offset="95%"
-                          stopColor="rgb(129,166,198)"
+                          stopColor={chartColors[0]}
                           stopOpacity={0}
                         />
                       </linearGradient>
@@ -289,7 +294,7 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
                       type="monotone"
                       dataKey="amount"
                       name="Spent"
-                      stroke="rgb(129,166,198)"
+                      stroke={chartColors[0]}
                       strokeWidth={3}
                       fillOpacity={1}
                       fill="url(#colorAmount)"
@@ -332,7 +337,7 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
                         {categoryDistribution.map((entry, index) => (
                           <Cell
                             key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
+                            fill={chartColors[index % chartColors.length]}
                           />
                         ))}
                       </Pie>
@@ -381,7 +386,7 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
                         {investmentAllocation.map((entry, index) => (
                           <Cell
                             key={`cell-${index}`}
-                            fill={COLORS[(index + 3) % COLORS.length]}
+                            fill={chartColors[(index + 3) % chartColors.length]}
                           />
                         ))}
                       </Pie>
@@ -464,7 +469,7 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
                     <Bar
                       dataKey="currentValue"
                       name="Current Value"
-                      fill="rgb(170,205,220)"
+                      fill={chartColors[1]}
                       radius={[4, 4, 0, 0]}
                       maxBarSize={60}
                     />

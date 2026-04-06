@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Bar,
   BarChart,
@@ -11,6 +11,19 @@ import {
   Pie,
   Legend,
 } from "recharts";
+
+const getThemeColors = () => {
+  if (typeof document === "undefined") return ["#000", "#000", "#000", "#000", "#000", "#000"];
+  const styles = getComputedStyle(document.documentElement);
+  return [
+    `hsl(${styles.getPropertyValue('--chart-1')})`,
+    `hsl(${styles.getPropertyValue('--chart-2')})`,
+    `hsl(${styles.getPropertyValue('--chart-3')})`,
+    `hsl(${styles.getPropertyValue('--chart-4')})`,
+    `hsl(${styles.getPropertyValue('--chart-5')})`,
+    `hsl(${styles.getPropertyValue('--chart-1')})`,
+  ];
+};
 
 export function ExpenseChart({ expenses }: { expenses: any[] }) {
   const data = useMemo(() => {
@@ -26,6 +39,14 @@ export function ExpenseChart({ expenses }: { expenses: any[] }) {
     }));
   }, [expenses]);
 
+  const [chartColors, setChartColors] = useState(getThemeColors());
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => setChartColors(getThemeColors()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
   if (data.length === 0) {
     return (
       <div className="flex h-[200px] items-center justify-center text-muted-foreground">
@@ -39,13 +60,13 @@ export function ExpenseChart({ expenses }: { expenses: any[] }) {
       <BarChart data={data}>
         <XAxis
           dataKey="name"
-          stroke="rgb(129,166,198)"
+          stroke={chartColors[0]}
           fontSize={12}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
-          stroke="rgb(129,166,198)"
+          stroke={chartColors[0]}
           fontSize={12}
           tickLine={false}
           axisLine={false}
@@ -55,8 +76,8 @@ export function ExpenseChart({ expenses }: { expenses: any[] }) {
           cursor={{ fill: "transparent" }}
           contentStyle={{
             borderRadius: "8px",
-            border: "1px solid rgba(129,166,198,0.25)",
-            boxShadow: "0 4px 12px rgba(129,166,198,0.16)",
+            border: "1px solid var(--border)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
           }}
         />
         <Bar
@@ -88,14 +109,13 @@ export function PortfolioChart({ investments }: { investments: any[] }) {
     }));
   }, [investments]);
 
-  const COLORS = [
-    "rgb(129,166,198)",
-    "rgb(170,205,220)",
-    "rgb(243,227,208)",
-    "rgb(210,196,180)",
-    "rgb(129,166,198)",
-    "rgb(170,205,220)",
-  ];
+  const [chartColors, setChartColors] = useState(getThemeColors());
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => setChartColors(getThemeColors()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   if (data.length === 0) {
     return (
@@ -118,7 +138,7 @@ export function PortfolioChart({ investments }: { investments: any[] }) {
           dataKey="value"
         >
           {data.map((_, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
           ))}
         </Pie>
         <Tooltip />

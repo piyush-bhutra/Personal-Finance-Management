@@ -55,7 +55,7 @@ export const TracingBeam = ({
             boxShadow:
               scrollYProgress.get() > 0
                 ? "none"
-                : "rgba(0, 0, 0, 0.24) 0px 3px 8px",
+                : "hsl(var(--foreground)) 0px 3px 8px",
           }}
           className="ml-[27px] h-4 w-4 rounded-full border border-netural-200 shadow-sm flex items-center justify-center"
         >
@@ -67,12 +67,12 @@ export const TracingBeam = ({
             animate={{
               backgroundColor:
                 scrollYProgress.get() > 0
-                  ? "rgb(243,227,208)"
-                  : "rgb(170,205,220)",
+                  ? "hsl(var(--background))"
+                  : "hsl(var(--accent))",
               borderColor:
                 scrollYProgress.get() > 0
-                  ? "rgb(243,227,208)"
-                  : "rgb(129,166,198)",
+                  ? "hsl(var(--background))"
+                  : "hsl(var(--primary))",
             }}
             className="h-2 w-2 rounded-full border border-primary/30 bg-background"
           />
@@ -87,7 +87,7 @@ export const TracingBeam = ({
           <motion.path
             d={`M 1 0V -36 l 18 24 V ${svgHeight * 0.8} l -18 24V ${svgHeight}`}
             fill="none"
-            stroke="rgb(129,166,198)"
+            stroke="hsl(var(--primary))"
             strokeOpacity="0.16"
             transition={{
               duration: 10,
@@ -112,12 +112,12 @@ export const TracingBeam = ({
               y1={y1}
               y2={y2}
             >
-              <stop stopColor="rgb(170,205,220)" stopOpacity="0"></stop>
-              <stop stopColor="rgb(170,205,220)"></stop>
-              <stop offset="0.325" stopColor="rgb(129,166,198)"></stop>
+              <stop stopColor="hsl(var(--accent))" stopOpacity="0"></stop>
+              <stop stopColor="hsl(var(--accent))"></stop>
+              <stop offset="0.325" stopColor="hsl(var(--primary))"></stop>
               <stop
                 offset="1"
-                stopColor="rgb(129,166,198)"
+                stopColor="hsl(var(--primary))"
                 stopOpacity="0"
               ></stop>
             </motion.linearGradient>

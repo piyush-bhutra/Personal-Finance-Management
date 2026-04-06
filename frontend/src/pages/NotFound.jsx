@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+
 import { Button } from '../components/ui/button';
 import { motion as Motion } from 'framer-motion';
 import { Home, ArrowLeft } from 'lucide-react';
@@ -9,8 +9,7 @@ export default function NotFound() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-background text-foreground flex flex-col">
-            <Navbar variant="auth" />
+        <div className="min-h-screen bg-ff-bg flex flex-col">
             <div className="flex-1 flex flex-col items-center justify-center p-4">
                 <Motion.div
                     initial={{ opacity: 0, scale: 0.9 }}

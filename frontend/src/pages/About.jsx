@@ -1,9 +1,8 @@
-import Navbar from '../components/Navbar';
+import React from 'react';
 
 export default function AboutPage() {
     return (
-        <div className="min-h-screen bg-background font-sans">
-            <Navbar />
+        <div className="min-h-screen bg-ff-bg flex flex-col">
 
             <main className="mx-auto max-w-[800px] px-4 py-16">
                 <h1 className="text-4xl font-bold tracking-tight mb-6">About FinanceFlow</h1>

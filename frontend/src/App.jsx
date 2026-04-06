@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from "framer-motion";
 
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/Login'));
@@ -30,6 +31,8 @@ const RouteLoadingFallback = () => (
   </div>
 );
 
+import Navbar from './components/Navbar';
+
 // Layout wrapper that adds footer to every page
 const Layout = ({ children }) => {
   const location = useLocation();
@@ -37,9 +40,27 @@ const Layout = ({ children }) => {
   const noFooterRoutes = ['/login', '/register'];
   const showFooter = !noFooterRoutes.includes(location.pathname);
 
+  const [isAuthenticated, setIsAuthenticated] = React.useState(!!localStorage.getItem("user"));
+
+  React.useEffect(() => {
+    setIsAuthenticated(!!localStorage.getItem("user"));
+  }, [location.pathname]);
+
   return (
     <div className="flex min-h-screen flex-col">
-      <main className="flex-1">{children}</main>
+      <Navbar variant={isAuthenticated ? "auth" : "public"} />
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={location.pathname}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -16 }}
+          transition={{ duration: 0.3 }}
+          className="flex-1"
+        >
+          {children}
+        </motion.main>
+      </AnimatePresence>
       {showFooter && <Footer />}
     </div>
   );

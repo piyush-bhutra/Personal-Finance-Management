@@ -12,10 +12,14 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [isDark, setIsDark] = useState<boolean>(() => {
-        // Always dark by default; only switch to light if explicitly stored
         const stored = localStorage.getItem('theme');
         if (stored === 'light') return false;
-        return true;
+        if (stored === 'dark') return true;
+
+        if (typeof window !== 'undefined') {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        return false;
     });
 
     useEffect(() => {

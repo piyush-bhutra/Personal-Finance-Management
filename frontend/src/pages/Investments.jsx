@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import Navbar from "../components/Navbar";
+
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -317,7 +317,7 @@ export default function InvestmentsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navbar variant="auth" />
+
       <div className="container mx-auto py-10 px-4 max-w-6xl space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-3xl font-bold">Investments</h1>

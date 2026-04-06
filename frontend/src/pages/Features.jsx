@@ -1,12 +1,11 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
+
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Zap, Shield, Smile } from 'lucide-react';
 
 export default function FeaturesPage() {
     return (
-        <div className="min-h-screen bg-background font-sans">
-            <Navbar />
+        <div className="min-h-screen bg-ff-bg flex flex-col">
             <main className="container mx-auto px-4 py-16">
                 <div className="text-center mb-16">
                     <h1 className="text-4xl font-bold tracking-tight mb-4">Features</h1>

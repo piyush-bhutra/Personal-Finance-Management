@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import Navbar from "../components/Navbar";
+
 import {
   Card,
   CardContent,
@@ -180,7 +180,7 @@ const ReportsPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Navbar variant="auth" />
+
       <div className="container mx-auto py-10 px-4 space-y-6 max-w-6xl">
         <div>
           <h1 className="text-3xl font-bold">Reports</h1>

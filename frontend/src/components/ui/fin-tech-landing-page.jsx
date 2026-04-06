@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../Navbar";
+
 import {
     PieChart,
     TrendingUp,
@@ -52,24 +52,24 @@ function DashboardMockup() {
             {/* Top row */}
             <div className="flex items-center justify-between mb-5">
                 <div>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.72rem", color: "rgb(129,166,198)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.72rem", color: "hsl(var(--primary))", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                         Net Worth
                     </p>
-                    <p style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: "1.75rem", color: "rgb(83,74,64)", lineHeight: 1.1, marginTop: "0.2rem" }}>
+                    <p style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontSize: "1.75rem", color: "hsl(var(--foreground))", lineHeight: 1.1, marginTop: "0.2rem" }}>
                         ₹4,82,360
                     </p>
                 </div>
                 <div style={{
-                    background: "rgba(170,205,220,0.22)",
-                    border: "1px solid rgba(170,205,220,0.35)",
+                    background: "hsl(var(--accent) / 0.22)",
+                    border: "1px solid hsl(var(--accent) / 0.35)",
                     borderRadius: "6px",
                     padding: "0.3rem 0.65rem",
                     display: "flex",
                     alignItems: "center",
                     gap: "0.3rem"
                 }}>
-                    <TrendingUp size={13} color="rgb(170,205,220)" />
-                    <span style={{ color: "rgb(170,205,220)", fontSize: "0.78rem", fontWeight: 600 }}>+23.4%</span>
+                    <TrendingUp size={13} color="hsl(var(--accent))" />
+                    <span style={{ color: "hsl(var(--accent))", fontSize: "0.78rem", fontWeight: 600 }}>+23.4%</span>
                 </div>
             </div>
 
@@ -82,32 +82,32 @@ function DashboardMockup() {
                                 width: "100%",
                                 height: `${h}%`,
                                 background: i === 5
-                                    ? "linear-gradient(180deg, rgb(129,166,198) 0%, rgb(129,166,198) 100%)"
-                                    : "rgba(129,166,198,0.22)",
+                                    ? "hsl(var(--accent))"
+                                    : "hsl(var(--primary) / 0.22)",
                                 borderRadius: "4px 4px 0 0",
                                 transformOrigin: "bottom",
                                 animation: `ff-bar-grow 0.6s ${i * 0.07}s ease-out both`,
                             }}
                         />
-                        <span style={{ fontSize: "0.6rem", color: "rgb(129,166,198)", fontFamily: "'DM Sans', sans-serif" }}>{months[i]}</span>
+                        <span style={{ fontSize: "0.6rem", color: "hsl(var(--primary))", fontFamily: "'DM Sans', sans-serif" }}>{months[i]}</span>
                     </div>
                 ))}
             </div>
 
             {/* Bottom stats row */}
-            <div style={{ display: "flex", gap: "0", marginTop: "1.25rem", borderTop: "1px solid rgba(129,166,198,0.22)", paddingTop: "1rem" }}>
+            <div style={{ display: "flex", gap: "0", marginTop: "1.25rem", borderTop: "1px solid hsl(var(--primary) / 0.22)", paddingTop: "1rem" }}>
                 {[
-                    { label: "Expenses", value: "₹38,240", color: "rgb(129,166,198)" },
-                    { label: "Savings", value: "₹22,800", color: "rgb(170,205,220)" },
-                    { label: "Invested", value: "₹1,20,000", color: "rgb(129,166,198)" },
+                    { label: "Expenses", value: "₹38,240", color: "hsl(var(--primary))" },
+                    { label: "Savings", value: "₹22,800", color: "hsl(var(--accent))" },
+                    { label: "Invested", value: "₹1,20,000", color: "hsl(var(--primary))" },
                 ].map((s, i) => (
                     <div key={i} style={{
                         flex: 1,
                         paddingRight: i < 2 ? "1rem" : 0,
                         paddingLeft: i > 0 ? "1rem" : 0,
-                        borderRight: i < 2 ? "1px solid rgba(129,166,198,0.22)" : "none"
+                        borderRight: i < 2 ? "1px solid hsl(var(--primary) / 0.22)" : "none"
                     }}>
-                        <p style={{ fontSize: "0.68rem", color: "rgb(129,166,198)", fontFamily: "'DM Sans', sans-serif", marginBottom: "0.2rem" }}>{s.label}</p>
+                        <p style={{ fontSize: "0.68rem", color: "hsl(var(--primary))", fontFamily: "'DM Sans', sans-serif", marginBottom: "0.2rem" }}>{s.label}</p>
                         <p style={{ fontSize: "0.9rem", fontWeight: 600, color: s.color, fontFamily: "'DM Sans', sans-serif" }}>{s.value}</p>
                     </div>
                 ))}
@@ -124,14 +124,14 @@ function FeatureCard({ icon, title, description }) {
             <h3 style={{
                 fontFamily: "'DM Serif Display', Georgia, serif",
                 fontSize: "1.15rem",
-                color: "rgb(83,74,64)",
+                color: "hsl(var(--foreground))",
                 marginBottom: "0.6rem",
                 lineHeight: 1.25
             }}>{title}</h3>
             <p style={{
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: "0.875rem",
-                color: "rgb(129,166,198)",
+                color: "hsl(var(--primary))",
                 lineHeight: 1.7
             }}>{description}</p>
         </div>
@@ -153,14 +153,14 @@ function StatItem({ value, label, icon }) {
                 <div style={{
                     fontFamily: "'DM Serif Display', Georgia, serif",
                     fontSize: "1.65rem",
-                    color: "rgb(83,74,64)",
+                    color: "hsl(var(--foreground))",
                     lineHeight: 1.1,
                     marginBottom: "0.2rem"
                 }}>{value}</div>
                 <div style={{
                     fontFamily: "'DM Sans', sans-serif",
                     fontSize: "0.78rem",
-                    color: "rgb(129,166,198)"
+                    color: "hsl(var(--primary))"
                 }}>{label}</div>
             </div>
         </div>
@@ -180,13 +180,13 @@ function StepItem({ number, title, description }) {
             <h3 style={{
                 fontFamily: "'DM Serif Display', Georgia, serif",
                 fontSize: "1.15rem",
-                color: "rgb(83,74,64)",
+                color: "hsl(var(--foreground))",
                 lineHeight: 1.25
             }}>{title}</h3>
             <p style={{
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: "0.875rem",
-                color: "rgb(129,166,198)",
+                color: "hsl(var(--primary))",
                 lineHeight: 1.7
             }}>{description}</p>
         </div>
@@ -201,7 +201,7 @@ function TestimonialCard({ quote, name, role, initial }) {
             <div style={{
                 fontFamily: "'DM Serif Display', Georgia, serif",
                 fontSize: "3rem",
-                color: "rgba(129,166,198,0.45)",
+                color: "hsl(var(--primary) / 0.45)",
                 lineHeight: 1,
                 marginBottom: "0.5rem",
                 marginTop: "-0.5rem"
@@ -209,7 +209,7 @@ function TestimonialCard({ quote, name, role, initial }) {
             <p style={{
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: "0.9rem",
-                color: "rgb(83,74,64)",
+                color: "hsl(var(--foreground))",
                 lineHeight: 1.75,
                 marginBottom: "1.25rem",
                 fontStyle: "italic"
@@ -219,19 +219,19 @@ function TestimonialCard({ quote, name, role, initial }) {
                     width: "2.25rem",
                     height: "2.25rem",
                     borderRadius: "50%",
-                    background: "rgba(129,166,198,0.18)",
-                    border: "1px solid rgba(129,166,198,0.45)",
+                    background: "hsl(var(--primary) / 0.18)",
+                    border: "1px solid hsl(var(--primary) / 0.35)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "rgb(129,166,198)",
+                    color: "hsl(var(--primary))",
                     fontWeight: 600,
                     fontSize: "0.85rem",
                     fontFamily: "'DM Sans', sans-serif"
                 }}>{initial}</div>
                 <div>
-                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", fontWeight: 600, color: "rgb(83,74,64)" }}>{name}</div>
-                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", color: "rgb(129,166,198)" }}>{role}</div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.85rem", fontWeight: 600, color: "hsl(var(--foreground))" }}>{name}</div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", color: "hsl(var(--primary))" }}>{role}</div>
                 </div>
             </div>
         </div>
@@ -243,10 +243,9 @@ export default function FinanceFlowLandingPage() {
     useReveal();
 
     return (
-        <div style={{ minHeight: "100vh", background: "rgb(243,227,208)", color: "rgb(83,74,64)", overflowX: "hidden" }}>
+        <div style={{ minHeight: "100vh", background: "hsl(var(--background))", color: "hsl(var(--foreground))", overflowX: "hidden" }}>
 
-            {/* ══ NAVBAR ══════════════════════════════════════════════════ */}
-            <Navbar />
+
 
             {/* ══ HERO ════════════════════════════════════════════════════ */}
             <section style={{ padding: "6rem 1.5rem 5rem" }}>
@@ -268,19 +267,19 @@ export default function FinanceFlowLandingPage() {
                         <h1 style={{
                             fontFamily: "'DM Serif Display', Georgia, serif",
                             fontSize: "clamp(2.6rem, 5vw, 3.75rem)",
-                            color: "rgb(83,74,64)",
+                            color: "hsl(var(--foreground))",
                             lineHeight: 1.08,
                             letterSpacing: "-0.02em",
                             marginBottom: "1.5rem",
                         }}>
                             Clarity over<br />
                             your finances,<br />
-                            <span style={{ color: "rgb(129,166,198)" }}>every day.</span>
+                            <span style={{ color: "hsl(var(--primary))" }}>every day.</span>
                         </h1>
                         <p style={{
                             fontFamily: "'DM Sans', sans-serif",
                             fontSize: "1.05rem",
-                            color: "rgb(129,166,198)",
+                            color: "hsl(var(--primary))",
                             lineHeight: 1.75,
                             maxWidth: "420px",
                             marginBottom: "2.25rem",
@@ -298,13 +297,13 @@ export default function FinanceFlowLandingPage() {
                         <p style={{
                             fontFamily: "'DM Sans', sans-serif",
                             fontSize: "0.78rem",
-                            color: "rgb(129,166,198)",
+                            color: "hsl(var(--primary))",
                             marginTop: "1.25rem",
                             display: "flex",
                             alignItems: "center",
                             gap: "0.4rem",
                         }}>
-                            <ShieldCheck size={13} color="rgb(170,205,220)" /> No credit card required. Bank-grade encryption.
+                            <ShieldCheck size={13} color="hsl(var(--accent))" /> No credit card required. Bank-grade encryption.
                         </p>
                     </div>
 
@@ -323,7 +322,7 @@ export default function FinanceFlowLandingPage() {
             <section style={{
                 borderTop: "1px solid rgba(129,166,198,0.22)",
                 borderBottom: "1px solid rgba(129,166,198,0.22)",
-                background: "rgba(210,196,180,0.6)",
+                background: "hsl(var(--secondary) / 0.6)",
             }}>
                 <div style={{
                     maxWidth: "1180px",
@@ -335,9 +334,9 @@ export default function FinanceFlowLandingPage() {
                     position: "relative",
                 }}>
                     {/* Vertical dividers between stats */}
-                    <div style={{ position: "absolute", top: 0, bottom: 0, left: "25%", width: "1px", background: "rgba(129,166,198,0.22)" }} className="hidden md:block" />
-                    <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "1px", background: "rgba(129,166,198,0.22)" }} className="hidden md:block" />
-                    <div style={{ position: "absolute", top: 0, bottom: 0, left: "75%", width: "1px", background: "rgba(129,166,198,0.22)" }} className="hidden md:block" />
+                    <div style={{ position: "absolute", top: 0, bottom: 0, left: "25%", width: "1px", background: "hsl(var(--primary) / 0.22)" }} className="hidden md:block" />
+                    <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: "1px", background: "hsl(var(--primary) / 0.22)" }} className="hidden md:block" />
+                    <div style={{ position: "absolute", top: 0, bottom: 0, left: "75%", width: "1px", background: "hsl(var(--primary) / 0.22)" }} className="hidden md:block" />
 
                     <StatItem value="10,000+" label="Active users managing budgets" icon={<Users size={16} />} />
                     <StatItem value="₹2.4Cr+" label="Total savings tracked" icon={<Wallet size={16} />} />
@@ -354,7 +353,7 @@ export default function FinanceFlowLandingPage() {
                         <h2 style={{
                             fontFamily: "'DM Serif Display', Georgia, serif",
                             fontSize: "clamp(2rem, 3.5vw, 2.75rem)",
-                            color: "rgb(83,74,64)",
+                            color: "hsl(var(--foreground))",
                             lineHeight: 1.12,
                             marginBottom: "1rem",
                         }}>
@@ -363,7 +362,7 @@ export default function FinanceFlowLandingPage() {
                         <p style={{
                             fontFamily: "'DM Sans', sans-serif",
                             fontSize: "0.95rem",
-                            color: "rgb(129,166,198)",
+                            color: "hsl(var(--primary))",
                             lineHeight: 1.75
                         }}>
                             Built around how real people actually think about money — not how banks do.
@@ -412,7 +411,7 @@ export default function FinanceFlowLandingPage() {
             {/* ══ HOW IT WORKS ════════════════════════════════════════════ */}
             <section style={{
                 padding: "6rem 1.5rem",
-                background: "rgba(210,196,180,0.45)",
+                background: "hsl(var(--secondary) / 0.45)",
                 borderTop: "1px solid rgba(129,166,198,0.22)",
                 borderBottom: "1px solid rgba(129,166,198,0.22)",
             }}>
@@ -422,7 +421,7 @@ export default function FinanceFlowLandingPage() {
                         <h2 style={{
                             fontFamily: "'DM Serif Display', Georgia, serif",
                             fontSize: "clamp(2rem, 3.5vw, 2.65rem)",
-                            color: "rgb(83,74,64)",
+                            color: "hsl(var(--foreground))",
                             lineHeight: 1.12,
                         }}>
                             Up and running in minutes
@@ -444,7 +443,7 @@ export default function FinanceFlowLandingPage() {
                         <div style={{
                             height: "1px",
                             flex: "0 0 3rem",
-                            background: "rgba(129,166,198,0.2)",
+                            background: "hsl(var(--primary) / 0.2)",
                             marginTop: "1.1rem",
                             alignSelf: "flex-start"
                         }} className="hidden md:block" />
@@ -456,7 +455,7 @@ export default function FinanceFlowLandingPage() {
                         <div style={{
                             height: "1px",
                             flex: "0 0 3rem",
-                            background: "rgba(129,166,198,0.2)",
+                            background: "hsl(var(--primary) / 0.2)",
                             marginTop: "1.1rem",
                             alignSelf: "flex-start"
                         }} className="hidden md:block" />
@@ -477,7 +476,7 @@ export default function FinanceFlowLandingPage() {
                         <h2 style={{
                             fontFamily: "'DM Serif Display', Georgia, serif",
                             fontSize: "clamp(2rem, 3.5vw, 2.65rem)",
-                            color: "rgb(83,74,64)",
+                            color: "hsl(var(--foreground))",
                             lineHeight: 1.12,
                         }}>
                             Trusted by people who take money seriously
@@ -522,7 +521,7 @@ export default function FinanceFlowLandingPage() {
                     <h2 style={{
                         fontFamily: "'DM Serif Display', Georgia, serif",
                         fontSize: "clamp(2.25rem, 4vw, 3.25rem)",
-                        color: "rgb(83,74,64)",
+                        color: "hsl(var(--foreground))",
                         lineHeight: 1.1,
                         marginBottom: "1.25rem",
                         letterSpacing: "-0.02em",
@@ -532,7 +531,7 @@ export default function FinanceFlowLandingPage() {
                     <p style={{
                         fontFamily: "'DM Sans', sans-serif",
                         fontSize: "1rem",
-                        color: "rgb(129,166,198)",
+                        color: "hsl(var(--primary))",
                         lineHeight: 1.75,
                         marginBottom: "2.25rem",
                         maxWidth: "460px",
@@ -551,7 +550,7 @@ export default function FinanceFlowLandingPage() {
                     <p style={{
                         fontFamily: "'DM Sans', sans-serif",
                         fontSize: "0.78rem",
-                        color: "rgb(129,166,198)",
+                        color: "hsl(var(--primary))",
                         marginTop: "1.1rem",
                     }}>
                         No credit card required

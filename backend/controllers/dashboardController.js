@@ -183,7 +183,7 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
       realizedValue += plan.realizedValue;
     } else {
       legacyInactivePlanIds.push(plan._id);
-      inactivePlanMap[plan._id] = plan;
+      inactivePlanMap[String(plan._id)] = plan;
     }
   }
 
@@ -205,12 +205,12 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
   // --- Calculate active investment value ---
   const activePlanMap = {};
   for (const p of activePlans) {
-    activePlanMap[p._id] = p;
+    activePlanMap[String(p._id)] = p;
   }
 
   let activeValue = 0;
   for (const entry of activeEntries) {
-    const plan = activePlanMap[entry.plan];
+    const plan = activePlanMap[String(entry.plan)];
     if (!plan) continue;
     const entryMonth = startOfMonth(entry.date);
     const diffMs = new Date() - entryMonth;
@@ -223,7 +223,7 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
 
   // --- Calculate legacy realized value ---
   for (const entry of legacyEntries) {
-    const plan = inactivePlanMap[entry.plan];
+    const plan = inactivePlanMap[String(entry.plan)];
     if (!plan) continue;
     const entryMonth = startOfMonth(entry.date);
     const diffMs = new Date() - entryMonth;

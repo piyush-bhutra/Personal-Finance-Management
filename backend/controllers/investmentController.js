@@ -41,32 +41,42 @@ const computePlanSummary = (plan, entries) => {
 const getInvestments = asyncHandler(async (req, res) => {
     const plans = await InvestmentPlan.find({ user: req.user.id, isActive: true });
 
-    // Build date filter — default to current month
-    const now = new Date();
-    const defaultFrom = startOfMonth(now);
-    const defaultTo = new Date(defaultFrom);
-    defaultTo.setMonth(defaultTo.getMonth() + 1);
-
-    const from = req.query.fromDate ? new Date(req.query.fromDate) : defaultFrom;
-    const to = req.query.toDate ? new Date(req.query.toDate) : defaultTo;
-
+    // Return full history unless the caller explicitly requests a date range.
     const planIds = plans.map(p => p._id);
-    const allEntries = await InvestmentEntry.find({
+    const entryQuery = {
         plan: { $in: planIds },
         isActive: true,
-        date: { $gte: from, $lt: to },
-    }).sort({ date: 1 });
+    };
+
+    if (req.query.fromDate || req.query.toDate) {
+        const dateFilter = {};
+
+        if (req.query.fromDate) {
+            dateFilter.$gte = new Date(req.query.fromDate);
+        }
+
+        if (req.query.toDate) {
+            dateFilter.$lt = new Date(req.query.toDate);
+        }
+
+        entryQuery.date = dateFilter;
+    }
+
+    const allEntries = planIds.length > 0
+        ? await InvestmentEntry.find(entryQuery).sort({ date: 1 })
+        : [];
 
     const entriesByPlanId = {};
     for (const entry of allEntries) {
-        if (!entriesByPlanId[entry.plan]) {
-            entriesByPlanId[entry.plan] = [];
+        const planId = String(entry.plan);
+        if (!entriesByPlanId[planId]) {
+            entriesByPlanId[planId] = [];
         }
-        entriesByPlanId[entry.plan].push(entry);
+        entriesByPlanId[planId].push(entry);
     }
 
     const results = plans.map((plan) => {
-        const entries = entriesByPlanId[plan._id] || [];
+        const entries = entriesByPlanId[String(plan._id)] || [];
         const summary = computePlanSummary(plan, entries);
         return {
             ...plan.toObject(),
@@ -90,17 +100,18 @@ const getInvestmentSummary = asyncHandler(async (req, res) => {
 
     const entriesByPlanId = {};
     for (const entry of allEntries) {
-        if (!entriesByPlanId[entry.plan]) {
-            entriesByPlanId[entry.plan] = [];
+        const planId = String(entry.plan);
+        if (!entriesByPlanId[planId]) {
+            entriesByPlanId[planId] = [];
         }
-        entriesByPlanId[entry.plan].push(entry);
+        entriesByPlanId[planId].push(entry);
     }
 
     let totalInvested = 0;
     let currentValue = 0;
 
     for (const plan of plans) {
-        const entries = entriesByPlanId[plan._id] || [];
+        const entries = entriesByPlanId[String(plan._id)] || [];
         const summary = computePlanSummary(plan, entries);
         totalInvested += summary.totalInvested;
         currentValue += summary.currentValue;

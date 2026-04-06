@@ -97,16 +97,18 @@ export function PortfolioChart({ investments }: { investments: any[] }) {
     investments.forEach((inv) => {
       const type = inv.type || "Other";
       const current = typeMap.get(type) || 0;
-      // New schema: totalInvested for all plan types (computed by backend)
-      // Fallback to amount for one-time plans that may not have totalInvested yet
-      const value = Number(inv.totalInvested ?? inv.amount ?? 0);
+      const value = Number(
+        inv.currentValue ?? inv.totalInvested ?? inv.amount ?? 0,
+      );
       typeMap.set(type, current + value);
     });
 
-    return Array.from(typeMap.entries()).map(([name, value]) => ({
-      name,
-      value,
-    }));
+    return Array.from(typeMap.entries())
+      .map(([name, value]) => ({
+        name,
+        value,
+      }))
+      .filter((item) => item.value > 0);
   }, [investments]);
 
   const [chartColors, setChartColors] = useState(getThemeColors());

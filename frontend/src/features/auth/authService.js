@@ -12,7 +12,6 @@ const register = async (userData) => {
     return response.data;
 };
 
-// Login user
 const login = async (userData) => {
     const response = await client.post(API_URL + 'login', userData);
 
@@ -23,7 +22,6 @@ const login = async (userData) => {
     return response.data;
 };
 
-// Logout user
 const logout = () => {
     localStorage.removeItem('user');
 };
@@ -31,7 +29,6 @@ const logout = () => {
 const updateProfile = async (userData) => {
     const response = await client.put(API_URL + 'profile', userData);
 
-    // Also update the local storage copy so the UI stays in sync permanently
     if (response.data) {
         localStorage.setItem('user', JSON.stringify(response.data));
     }

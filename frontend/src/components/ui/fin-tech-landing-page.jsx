@@ -18,7 +18,6 @@ import {
     BarChart3,
 } from "lucide-react";
 
-/* ─── Scroll-reveal hook ─────────────────────────────────────────── */
 function useReveal() {
     useEffect(() => {
         const els = document.querySelectorAll(".ff-reveal");
@@ -45,14 +44,12 @@ function useReveal() {
     }, []);
 }
 
-/* ─── Mini dashboard mockup ──────────────────────────────────────── */
 function DashboardMockup() {
     const bars = [42, 65, 55, 80, 60, 90, 72];
     const months = ["Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb"];
 
     return (
         <div className="ff-mockup-ring p-6 w-full max-w-md mx-auto">
-            {/* Top row */}
             <div className="flex items-center justify-between mb-5">
                 <div>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.72rem", color: "hsl(var(--primary))", textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -76,7 +73,6 @@ function DashboardMockup() {
                 </div>
             </div>
 
-            {/* Bar chart */}
             <div style={{ display: "flex", alignItems: "flex-end", gap: "0.45rem", height: "90px" }}>
                 {bars.map((h, i) => (
                     <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem" }}>
@@ -97,7 +93,6 @@ function DashboardMockup() {
                 ))}
             </div>
 
-            {/* Bottom stats row */}
             <div style={{ display: "flex", gap: "0", marginTop: "1.25rem", borderTop: "1px solid hsl(var(--primary) / 0.22)", paddingTop: "1rem" }}>
                 {[
                     { label: "Expenses", value: "₹38,240", color: "hsl(var(--primary))" },
@@ -119,7 +114,6 @@ function DashboardMockup() {
     );
 }
 
-/* ─── Feature card ───────────────────────────────────────────────── */
 function FeatureCard({ icon, title, description }) {
     return (
         <div className="ff-reveal">
@@ -143,7 +137,6 @@ function FeatureCard({ icon, title, description }) {
     );
 }
 
-/* ─── Stat item ──────────────────────────────────────────────────── */
 function StatItem({ value, label, icon }) {
     return (
         <div className="ff-reveal ff-stat-block" style={{
@@ -172,7 +165,6 @@ function StatItem({ value, label, icon }) {
     );
 }
 
-/* ─── Step item ──────────────────────────────────────────────────── */
 function StepItem({ number, title, description }) {
     return (
         <div className="ff-reveal" style={{
@@ -198,12 +190,10 @@ function StepItem({ number, title, description }) {
     );
 }
 
-/* ─── Testimonial card ───────────────────────────────────────────── */
 function TestimonialCard({ quote, name, role, initial }) {
     return (
         <div className="ff-reveal">
             <GlowingShadow contentClassName="ff-testimonial">
-                {/* Quote mark */}
                 <div style={{
                     fontFamily: "'DM Serif Display', Georgia, serif",
                     fontSize: "3rem",
@@ -245,14 +235,12 @@ function TestimonialCard({ quote, name, role, initial }) {
     );
 }
 
-/* ─── Main landing page ──────────────────────────────────────────── */
 export default function FinanceFlowLandingPage() {
     useReveal();
 
     return (
         <InfiniteGridBackground className="min-h-screen bg-background text-foreground">
             <div style={{ minHeight: "100vh", overflowX: "hidden" }}>
-                {/* HERO */}
                 <section style={{ padding: "6rem 1.5rem 5rem" }}>
                     <div style={{
                         maxWidth: "1180px",
@@ -264,7 +252,6 @@ export default function FinanceFlowLandingPage() {
                     }}
                         className="hero-grid"
                     >
-                        {/* Left */}
                         <div style={{ animation: "ff-fade-up 0.6s ease both" }}>
                             <div className="ff-label" style={{ marginBottom: "1.25rem" }}>
                                 Personal Finance, Simplified
@@ -312,7 +299,6 @@ export default function FinanceFlowLandingPage() {
                             </p>
                         </div>
 
-                        {/* Right — dashboard mockup */}
                         <div style={{
                             animation: "ff-fade-up 0.7s 0.15s ease both",
                             display: "flex",

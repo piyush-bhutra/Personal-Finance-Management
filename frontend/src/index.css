@@ -6,7 +6,6 @@
 
 @layer base {
   :root {
-    /* FinanceFlow Warm Palette Design System */
     --background: 32 60% 88%; /* #F3E3D0 warm cream */
     --foreground: 25 30% 12%; /* #2A1F15 dark warm */
     --card: 36 55% 95%; /* #FDF8F0 lighter cream */
@@ -41,7 +40,6 @@
     --sidebar-border: 32 22% 76%;
     --sidebar-ring: 208 38% 64%;
 
-    /* FinanceFlow custom tokens */
     --ff-bg: rgb(243, 227, 208);
     --ff-surface: rgb(210, 196, 180);
     --ff-card: rgb(243, 227, 208);
@@ -56,7 +54,6 @@
     color-scheme: light;
   }
 
-  /* Dark theme */
   .dark {
     --background: 220 18% 10%; /* deep slate */
     --foreground: 36 55% 92%; /* warm cream text */
@@ -145,7 +142,6 @@
     font-family: "DM Serif Display", Georgia, serif;
   }
 
-  /* Date picker theme */
   input[type="date"],
   input[type="month"] {
     color-scheme: inherit;
@@ -163,9 +159,6 @@
   touch-action: none;
 }
 
-/* ===================== FINANCEFLOW LANDING DESIGN ===================== */
-
-/* Fade in + slide up on scroll */
 .ff-reveal {
   opacity: 0;
   transform: translateY(20px);
@@ -179,7 +172,6 @@
   transform: translateY(0);
 }
 
-/* Accent button */
 .ff-btn-accent {
   background-color: var(--ff-accent-blue);
   color: rgb(243, 227, 208);
@@ -205,7 +197,6 @@
   box-shadow: 0 0 0 3px rgba(129, 166, 198, 0.3);
 }
 
-/* Ghost/outline button */
 .ff-btn-ghost {
   background: transparent;
   color: var(--ff-text-secondary);
@@ -231,7 +222,6 @@
   color: var(--ff-text-primary);
 }
 
-/* Feature card */
 .ff-card {
   background: hsl(var(--card));
   color: hsl(var(--card-foreground));
@@ -248,7 +238,6 @@
   border-color: hsl(var(--primary) / 0.45);
 }
 
-/* Stat card */
 .ff-stat-item {
   padding: 1.5rem 2rem;
   border-right: 1px solid rgba(129, 166, 198, 0.2);
@@ -262,7 +251,6 @@
   border-right: none;
 }
 
-/* Step number badge */
 .ff-step-number {
   width: 2.25rem;
   height: 2.25rem;
@@ -279,7 +267,6 @@
   font-family: "DM Sans", sans-serif;
 }
 
-/* Testimonial card */
 .ff-testimonial {
   background: hsl(var(--card));
   color: hsl(var(--card-foreground));
@@ -293,14 +280,12 @@
   box-shadow: 0 10px 34px hsl(var(--primary) / 0.16);
 }
 
-/* Section heading in serif */
 .ff-heading {
   font-family: "DM Serif Display", Georgia, serif;
   color: rgb(129, 166, 198);
   line-height: 1.1;
 }
 
-/* Muted label */
 .ff-label {
   font-family: "DM Sans", sans-serif;
   font-size: 0.78rem;
@@ -310,7 +295,6 @@
   font-weight: 600;
 }
 
-/* Icon wrapper */
 .ff-icon-wrap {
   width: 2.5rem;
   height: 2.5rem;
@@ -324,7 +308,6 @@
   flex-shrink: 0;
 }
 
-/* CTA Banner gradient */
 .ff-cta-banner {
   background: linear-gradient(
     135deg,
@@ -336,14 +319,12 @@
   border-bottom: 1px solid hsl(var(--border));
 }
 
-/* Divider line */
 .ff-divider {
   height: 1px;
   background: rgba(129, 166, 198, 0.2);
   width: 100%;
 }
 
-/* Subtle dashboard mockup ring */
 .ff-mockup-ring {
   border: 1px solid hsl(var(--border));
   border-radius: 16px;
@@ -352,8 +333,6 @@
     0 16px 52px hsl(var(--primary) / 0.16),
     inset 0 1px 0 hsl(var(--foreground) / 0.06);
 }
-
-/* ===================== ANIMATIONS ===================== */
 
 @keyframes accordion-down {
   from {

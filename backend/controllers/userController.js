@@ -11,7 +11,6 @@ function generateToken(id) {
   });
 }
 
-// Helper to generate user response (supports Mongoose docs and `.lean()` objects)
 const generateUserResponse = (user) => {
   const id = user?._id || user?.id;
   return {
@@ -27,9 +26,6 @@ const generateUserResponse = (user) => {
   };
 };
 
-// @desc    Register new user
-// @route   POST /api/users
-// @access  Public
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, age, occupation, investmentExperience, dateOfBirth } = req.body;
 
@@ -40,7 +36,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
   const normalizedEmail = email.toLowerCase().trim();
 
-  // Check if user exists
   const userExists = await User.findOne({ email: normalizedEmail });
 
   if (userExists) {
@@ -48,11 +43,9 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("User already exists");
   }
 
-  // Hash password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  // Create user
   const user = await User.create({
     name,
     email,
@@ -71,16 +64,12 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Authenticate a user
-// @route   POST /api/users/login
-// @access  Public
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const normalizedEmail = String(email || "")
     .trim()
     .toLowerCase();
 
-  // Check for user email
   const user = await User.findOne({ email: normalizedEmail }).lean();
 
   if (user && (await bcrypt.compare(password, user.password))) {
@@ -92,16 +81,10 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 
-// @desc    Get user data
-// @route   GET /api/users/me
-// @access  Private
 const getMe = asyncHandler(async (req, res) => {
   res.status(200).json(req.user);
 });
 
-// @desc    Update user profile
-// @route   PUT /api/users/profile
-// @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
 
@@ -112,8 +95,6 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
     user.name = req.body.name || user.name;
     user.email = nextEmail;
-    // updatedAt is automatically handled by Mongoose timestamps
-
     const updatedUser = await user.save();
 
     res.json(generateUserResponse(updatedUser));

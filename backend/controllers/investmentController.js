@@ -4,17 +4,14 @@ const InvestmentEntry = require('../models/InvestmentEntry');
 
 const { startOfMonth, monthsBetween, compoundValue } = require('../utils/calc');
 
-/** Compute summary fields for a plan given its active entries */
 const computePlanSummary = (plan, entries) => {
     let totalInvested = 0;
     let currentValue = 0;
 
-    // Calculate total invested from active entries
     for (const entry of entries) {
         if (!entry.isActive) continue;
         totalInvested += entry.amount;
 
-        // Only compute compound diff if plan is ACTIVE
         if (plan.status === 'active') {
             const now = new Date();
             const nowMonthStart = startOfMonth(now);
@@ -25,7 +22,6 @@ const computePlanSummary = (plan, entries) => {
         }
     }
 
-    // If closed, use the stored realized value
     if (plan.status === 'closed' && plan.realizedValue !== undefined) {
         currentValue = plan.realizedValue;
     }
@@ -34,14 +30,9 @@ const computePlanSummary = (plan, entries) => {
     return { totalInvested, currentValue: Math.round(currentValue), gain: Math.round(gain) };
 };
 
-/* ─────────────────────────────────────────────────────────────
-   GET /api/investments
-   Returns all active plans for the user with computed totals.
-───────────────────────────────────────────────────────────── */
 const getInvestments = asyncHandler(async (req, res) => {
     const plans = await InvestmentPlan.find({ user: req.user.id, isActive: true });
 
-    // Return full history unless the caller explicitly requests a date range.
     const planIds = plans.map(p => p._id);
     const entryQuery = {
         plan: { $in: planIds },
@@ -88,10 +79,6 @@ const getInvestments = asyncHandler(async (req, res) => {
     res.status(200).json(results);
 });
 
-/* ─────────────────────────────────────────────────────────────
-   GET /api/investments/summary
-   Returns aggregate totals across all plans (for the dashboard).
-───────────────────────────────────────────────────────────── */
 const getInvestmentSummary = asyncHandler(async (req, res) => {
     const plans = await InvestmentPlan.find({ user: req.user.id, isActive: true });
 
@@ -125,10 +112,6 @@ const getInvestmentSummary = asyncHandler(async (req, res) => {
     });
 });
 
-/* ─────────────────────────────────────────────────────────────
-   POST /api/investments
-   Creates a new plan and backfills entries.
-───────────────────────────────────────────────────────────── */
 const createInvestment = asyncHandler(async (req, res) => {
     const { investmentMode, assetName, type, monthlyAmount, startDate,
         amount, date, expectedReturnRate, description } = req.body;
@@ -155,7 +138,6 @@ const createInvestment = asyncHandler(async (req, res) => {
             description,
         });
 
-        // Backfill one entry per month from startDate to today
         const today = new Date();
         const months = monthsBetween(startDate, today);
         const entries = months.map((monthDate) => ({
@@ -172,7 +154,6 @@ const createInvestment = asyncHandler(async (req, res) => {
         const summary = computePlanSummary(plan, allEntries);
 
         res.status(201).json({ ...plan.toObject(), ...summary, entries: allEntries });
-
     } else if (investmentMode === 'one-time') {
         if (!amount || !date) {
             res.status(400);
@@ -200,19 +181,12 @@ const createInvestment = asyncHandler(async (req, res) => {
 
         const summary = computePlanSummary(plan, [entry]);
         res.status(201).json({ ...plan.toObject(), ...summary, entries: [entry] });
-
     } else {
         res.status(400);
         throw new Error('investmentMode must be "recurring" or "one-time"');
     }
 });
 
-/* ─────────────────────────────────────────────────────────────
-   PUT /api/investments/:id
-   For recurring: update from fromDate forward, preserve history.
-   For one-time: replace the entry wholesale.
-   Body: { fromDate (YYYY-MM), ...updatedFields }
-───────────────────────────────────────────────────────────── */
 const updateInvestment = asyncHandler(async (req, res) => {
     const plan = await InvestmentPlan.findById(req.params.id);
     if (!plan) { res.status(404); throw new Error('Investment not found'); }
@@ -227,7 +201,6 @@ const updateInvestment = asyncHandler(async (req, res) => {
 
         const cutoff = startOfMonth(new Date(fromDate));
 
-        // Deactivate all entries from cutoff forward
         await InvestmentEntry.updateMany(
             { plan: plan._id, date: { $gte: cutoff }, isActive: true },
             { $set: { isActive: false } }
@@ -245,7 +218,6 @@ const updateInvestment = asyncHandler(async (req, res) => {
         }));
         await InvestmentEntry.insertMany(newEntries);
 
-        // Update plan metadata
         const updatedPlan = await InvestmentPlan.findByIdAndUpdate(
             plan._id,
             {
@@ -261,9 +233,7 @@ const updateInvestment = asyncHandler(async (req, res) => {
         const entries = await InvestmentEntry.find({ plan: plan._id, isActive: true }).sort({ date: 1 });
         const summary = computePlanSummary(updatedPlan, entries);
         res.status(200).json({ ...updatedPlan.toObject(), ...summary, entries });
-
     } else {
-        // One-time: update plan and its single entry
         const updatedPlan = await InvestmentPlan.findByIdAndUpdate(
             plan._id,
             {
@@ -277,7 +247,6 @@ const updateInvestment = asyncHandler(async (req, res) => {
             { new: true }
         );
 
-        // Replace the single entry
         await InvestmentEntry.findOneAndUpdate(
             { plan: plan._id },
             {
@@ -293,14 +262,6 @@ const updateInvestment = asyncHandler(async (req, res) => {
     }
 });
 
-/* ─────────────────────────────────────────────────────────────
-   DELETE /api/investments/:id
-   For recurring: deactivate entries from fromDate forward.
-     If fromDate equals startDate (or no active entries remain before cutoff),
-     also deactivate the plan itself.
-   For one-time: fully delete plan + entry.
-   Body: { fromDate (YYYY-MM) }  — required only for recurring
-───────────────────────────────────────────────────────────── */
 const deleteInvestment = asyncHandler(async (req, res) => {
     const plan = await InvestmentPlan.findById(req.params.id);
     if (!plan) { res.status(404); throw new Error('Investment not found'); }
@@ -318,24 +279,18 @@ const deleteInvestment = asyncHandler(async (req, res) => {
             { $set: { isActive: false } }
         );
 
-        // If no active entries remain, mark the plan as inactive too
         const remaining = await InvestmentEntry.countDocuments({ plan: plan._id, isActive: true });
         if (remaining === 0) {
             await InvestmentPlan.findByIdAndUpdate(plan._id, { isActive: false });
         }
 
         res.status(200).json({ id: req.params.id, message: 'Investment stopped from ' + fromDate });
-
     } else {
         await plan.deleteOne();
         res.status(200).json({ id: req.params.id, message: 'Investment deleted' });
     }
 });
-/* ─────────────────────────────────────────────────────────────
-   PUT /api/investments/:id/stop
-   Stops/Sells an investment.
-   Body: { stopDate, realizedValue }
-───────────────────────────────────────────────────────────── */
+
 const stopInvestment = asyncHandler(async (req, res) => {
     const plan = await InvestmentPlan.findById(req.params.id);
     if (!plan) { res.status(404); throw new Error('Investment not found'); }
@@ -348,7 +303,6 @@ const stopInvestment = asyncHandler(async (req, res) => {
         throw new Error('Please provide stopDate and realizedValue');
     }
 
-    // Close the plan
     const updatedPlan = await InvestmentPlan.findByIdAndUpdate(
         plan._id,
         {
@@ -360,12 +314,8 @@ const stopInvestment = asyncHandler(async (req, res) => {
         { new: true }
     );
 
-    // Prune future entries if recurring (entries after stop date)
     if (plan.investmentMode === 'recurring') {
         const cutoff = new Date(stopDate);
-        // We delete entries strictly AFTER the stop date's month?
-        // Usually if I stop on Feb 15, I keep Feb 1? Yes.
-        // Any entry with date > stopDate is future.
         await InvestmentEntry.deleteMany({
             plan: plan._id,
             date: { $gt: cutoff }
@@ -377,7 +327,6 @@ const stopInvestment = asyncHandler(async (req, res) => {
 
     res.status(200).json({ ...updatedPlan.toObject(), ...summary, entries });
 });
-
 
 module.exports = {
     getInvestments,

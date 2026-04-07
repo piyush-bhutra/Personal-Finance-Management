@@ -1,10 +1,5 @@
 const mongoose = require('mongoose');
 
-/**
- * InvestmentPlan — the template / definition of an investment.
- * For recurring investments, InvestmentEntry records are the actual ledger.
- * For one-time investments, a single InvestmentEntry is created.
- */
 const investmentPlanSchema = mongoose.Schema(
     {
         user: {
@@ -30,31 +25,28 @@ const investmentPlanSchema = mongoose.Schema(
                 'Mutual Fund', 'Fixed Deposit', 'Gold', 'SIP', 'Other',
             ],
         },
-        // For recurring investments
         monthlyAmount: {
             type: Number,
         },
         startDate: {
-            type: Date, // The first month this investment began
+            type: Date,
         },
-        // For one-time investments
         amount: {
             type: Number,
         },
         date: {
             type: Date,
         },
-        // Shared
         expectedReturnRate: {
             type: Number,
-            default: 0, // Annual % e.g. 12 means 12% p.a.
+            default: 0,
         },
         description: {
             type: String,
         },
         isActive: {
             type: Boolean,
-            default: true, // false means soft-deleted (trash)
+            default: true,
         },
         status: {
             type: String,

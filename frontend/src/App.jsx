@@ -33,10 +33,8 @@ const RouteLoadingFallback = () => (
 
 import Navbar from './components/Navbar';
 
-// Layout wrapper that adds footer to every page
 const Layout = ({ children }) => {
   const location = useLocation();
-  // Don't show footer on pure auth pages
   const noFooterRoutes = ['/login', '/register'];
   const showFooter = !noFooterRoutes.includes(location.pathname);
 
@@ -72,7 +70,6 @@ const App = () => {
       <Layout>
         <Suspense fallback={<RouteLoadingFallback />}>
           <Routes>
-            {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/features" element={<FeaturesPage />} />
             <Route path="/about" element={<AboutPage />} />
@@ -80,7 +77,6 @@ const App = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
-            {/* Protected Routes */}
             <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
             <Route path="/expenses" element={<ProtectedRoute><ExpensesPage /></ProtectedRoute>} />
             <Route path="/investments" element={<ProtectedRoute><InvestmentsPage /></ProtectedRoute>} />
@@ -89,7 +85,6 @@ const App = () => {
             <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
-            {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

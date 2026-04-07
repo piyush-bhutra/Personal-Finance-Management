@@ -41,7 +41,6 @@ const getMonthRange = (monthStart) => {
 const buildBudgetOverview = async (userId, monthStart) => {
   const { start, end } = getMonthRange(monthStart);
 
-  // Aggregate category totals in the DB — no raw entry documents transferred
   const [budgets, categoryAgg] = await Promise.all([
     Budget.find({ user: userId, month: start }).sort({ category: 1 }).lean(),
     ExpenseEntry.aggregate([
@@ -138,16 +137,7 @@ const buildBudgetOverview = async (userId, monthStart) => {
   };
 };
 
-/* ─────────────────────────────────────────────────────────────
-   GET /api/dashboard/summary
-   Returns:
-     - netWorth = (Active Inv Value + Realized Inactive Inv Value)
-     - totalActiveInvestments = Active Inv Value only
-     - totalExpenses = Sum of all expenses
-     - activePlanCount
-───────────────────────────────────────────────────────────── */
 const getDashboardSummary = asyncHandler(async (req, res) => {
-  // --- Wave 1: fire all independent queries in parallel ---
   const [activePlans, closedPlans, expenseSumResult, monthlyBudget] =
     await Promise.all([
       InvestmentPlan.find({
@@ -170,10 +160,7 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
   const totalExpenses =
     expenseSumResult.length > 0 ? expenseSumResult[0].total : 0;
 
-  // --- Wave 2: fetch investment entries (depend on plan IDs from wave 1) ---
   const activePlanIds = activePlans.map((p) => p._id);
-
-  // Separate closed plans: those with an explicit realizedValue vs legacy ones
   const legacyInactivePlanIds = [];
   const inactivePlanMap = {};
   let realizedValue = 0;
@@ -187,7 +174,6 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
     }
   }
 
-  // Both entry fetches are independent of each other → parallel
   const [activeEntries, legacyEntries] = await Promise.all([
     activePlanIds.length > 0
       ? InvestmentEntry.find({
@@ -202,7 +188,6 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
       : Promise.resolve([]),
   ]);
 
-  // --- Calculate active investment value ---
   const activePlanMap = {};
   for (const p of activePlans) {
     activePlanMap[String(p._id)] = p;
@@ -221,7 +206,6 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
     activeValue += compoundValue(entry.amount, plan.expectedReturnRate, ageMonths);
   }
 
-  // --- Calculate legacy realized value ---
   for (const entry of legacyEntries) {
     const plan = inactivePlanMap[String(entry.plan)];
     if (!plan) continue;
@@ -246,11 +230,6 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
   });
 });
 
-/* ─────────────────────────────────────────────────────────────
-   GET /api/dashboard/budgets
-   Query:
-     - month (optional): YYYY-MM
-───────────────────────────────────────────────────────────── */
 const getMonthlyBudgets = asyncHandler(async (req, res) => {
   let monthStart;
   try {
@@ -264,13 +243,6 @@ const getMonthlyBudgets = asyncHandler(async (req, res) => {
   res.status(200).json(overview);
 });
 
-/* ─────────────────────────────────────────────────────────────
-   POST /api/dashboard/budgets
-   Body:
-     - category (required)
-     - limit (required)
-     - month (optional): YYYY-MM
-───────────────────────────────────────────────────────────── */
 const upsertMonthlyBudget = asyncHandler(async (req, res) => {
   const { category, limit, month } = req.body;
 
@@ -312,9 +284,6 @@ const upsertMonthlyBudget = asyncHandler(async (req, res) => {
   });
 });
 
-/* ─────────────────────────────────────────────────────────────
-   DELETE /api/dashboard/budgets/:id
-───────────────────────────────────────────────────────────── */
 const deleteMonthlyBudget = asyncHandler(async (req, res) => {
   const budget = await Budget.findById(req.params.id);
 
@@ -344,15 +313,6 @@ const deleteMonthlyBudget = asyncHandler(async (req, res) => {
   });
 });
 
-/* ─────────────────────────────────────────────────────────────
-   GET /api/dashboard/transactions
-   Fetch merged transactions with filtering and sorting.
-   Query Params:
-     - type: 'all' | 'expense' | 'investment' (default: 'all')
-     - sort: 'date' | 'amount'
-     - order: 'desc' | 'asc' (default: 'desc')
-     - limit: number (default: 50)
-───────────────────────────────────────────────────────────── */
 const getRecentTransactions = asyncHandler(async (req, res) => {
   const {
     type = "all",
@@ -363,11 +323,9 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
     to,
   } = req.query;
 
-  // Normalize and clamp limit to avoid unbounded responses
   const rawLimit = Number.isNaN(Number(limit)) ? 50 : Number(limit);
   const limitNum = Math.min(Math.max(rawLimit, 1), 200);
 
-  // Build query filters
   const dateFilter = {};
   if (from || to) {
     dateFilter.date = {};
@@ -375,15 +333,12 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
     if (to) dateFilter.date.$lte = new Date(to);
   }
 
-  // Each sub-query fetches at most limitNum rows already sorted — Node only
-  // merges two small arrays instead of sorting the full collection history.
   const dbSortField = sort === "amount" ? "amount" : "date";
   const dbSortDir = order === "asc" ? 1 : -1;
   const dbSort = { [dbSortField]: dbSortDir };
 
   let allTransactions = [];
 
-  // 1. Fetch Expenses (capped at limitNum, pre-sorted by DB)
   if (type === "all" || type === "expense") {
     const expenseEntries = await ExpenseEntry.find({
       user: req.user.id,
@@ -409,7 +364,6 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
     allTransactions.push(...formattedExpenses);
   }
 
-  // 2. Fetch Investments (capped at limitNum, pre-sorted by DB)
   if (type === "all" || type === "investment") {
     const investmentEntries = await InvestmentEntry.find({
       user: req.user.id,
@@ -433,7 +387,6 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
     }));
     allTransactions.push(...formattedInvestments);
 
-    // 2b. Fetch "Sold" events (Closed Plans)
     const stopDateFilter = {};
     if (from || to) {
       stopDateFilter.stopDate = {};
@@ -467,7 +420,6 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
     allTransactions.push(...soldEvents);
   }
 
-  // 3. Merge the small arrays and sort only those in Node
   allTransactions.sort((a, b) => {
     if (sort === "amount") {
       return order === "asc" ? a.amount - b.amount : b.amount - a.amount;
@@ -475,7 +427,6 @@ const getRecentTransactions = asyncHandler(async (req, res) => {
     return order === "asc" ? a.date - b.date : b.date - a.date;
   });
 
-  // 4. Final cap to requested limit
   allTransactions = allTransactions.slice(0, limitNum);
 
   res.status(200).json(allTransactions);

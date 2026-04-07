@@ -40,7 +40,6 @@ const getThemeColors = () => {
   ];
 };
 
-// Helper to format currency
 const formatCurrency = (value) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -75,32 +74,28 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
     };
     fetchAnalyticsData();
 
-    // Re-evaluate colors on theme change
     const observer = new MutationObserver(() => setChartColors(getThemeColors()));
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     return () => observer.disconnect();
   }, []);
 
-  // 1. Expense Trends Over Time (Monthly aggregation)
   const expenseTrends = useMemo(() => {
     const normalize = (e) => ({ ...e, date: e.date ?? e.startDate, amount: e.amount ?? e.monthlyAmount });
     const trends = {};
     expenses.map(normalize).forEach((expense) => {
       const date = new Date(expense.date);
-      // Format as YYYY-MM
       const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
       trends[monthYear] = (trends[monthYear] || 0) + Number(expense.amount);
     });
 
     return Object.keys(trends)
-      .sort() // Chronological order
+      .sort()
       .map((key) => ({
         month: key,
         amount: trends[key],
       }));
   }, [expenses]);
 
-  // 2. Category-wise Expense Distribution
   const categoryDistribution = useMemo(() => {
     const normalize = (e) => ({ ...e, date: e.date ?? e.startDate, amount: e.amount ?? e.monthlyAmount });
     const distribution = {};
@@ -111,10 +106,9 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
 
     return Object.entries(distribution)
       .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value); // Decending order
+      .sort((a, b) => b.value - a.value);
   }, [expenses]);
 
-  // 3. Investment Allocation Overview (Current Value of ACTIVE investments)
   const investmentAllocation = useMemo(() => {
     const activeInvestments = investments.filter(
       (inv) => inv.status !== "closed",
@@ -132,7 +126,6 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
       .sort((a, b) => b.value - a.value);
   }, [investments]);
 
-  // 4. Investment Performance Trends (Invested vs Current Value per Asset Type)
   const investmentPerformance = useMemo(() => {
     const activeInvestments = investments.filter(
       (inv) => inv.status !== "closed",
@@ -153,7 +146,6 @@ const AnalyticsPage = ({ isEmbedded = false, onBack }) => {
     return Object.values(performance);
   }, [investments]);
 
-  // Custom Tooltips for Charts
   const CurrencyTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (

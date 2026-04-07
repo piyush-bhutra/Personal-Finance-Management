@@ -55,7 +55,6 @@ const ReportsPage = () => {
     if (!from || !to) return;
     if (fromDate > toDate) return;
 
-    // Debounce: wait 600 ms after the last date change before fetching
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(async () => {
@@ -102,8 +101,6 @@ const ReportsPage = () => {
   }, [expenses, fromDate, toDate]);
 
   const monthlySummary = useMemo(() => {
-    // Derive realized income from closed investment plans whose stopDate
-    // falls within the selected date range — no separate API call needed.
     const realizedIncome = investments
       .filter((plan) => {
         if (plan.status !== "closed" || !plan.stopDate) return false;

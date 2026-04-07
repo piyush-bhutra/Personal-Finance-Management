@@ -2,31 +2,26 @@ import client from '../../api/client';
 
 const API_URL = '/expenses/';
 
-// Get user expenses — optional { fromDate, toDate } ISO strings
 const getExpenses = async (params = {}) => {
     const response = await client.get(API_URL, { params });
     return response.data;
 };
 
-// Create new expense
 const createExpense = async (expenseData) => {
     const response = await client.post(API_URL, expenseData);
     return response.data;
 };
 
-// Update user expense
 const updateExpense = async (expenseId, expenseData) => {
     const response = await client.put(API_URL + expenseId, expenseData);
     return response.data;
 };
 
-// Delete user expense
 const deleteExpense = async (expenseId, fromDate) => {
     const response = await client.delete(API_URL + expenseId, { data: { fromDate } });
     return response.data;
 };
 
-// Stop recurring expense
 const stopExpense = async (expenseId, stopData) => {
     const response = await client.put(API_URL + expenseId + '/stop', stopData);
     return response.data;

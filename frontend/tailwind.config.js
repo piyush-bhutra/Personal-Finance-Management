@@ -82,9 +82,6 @@ export default {
                     },
                 },
             },
-            // We can define keyframes here too to make them truly utility-first, 
-            // but since they are in global CSS, it's also fine. 
-            // Adding them here allows Tailwind to merge duplicate keyframes if needed in future.
         },
     },
     plugins: [],

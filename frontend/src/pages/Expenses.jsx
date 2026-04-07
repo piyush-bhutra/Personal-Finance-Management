@@ -51,11 +51,9 @@ export default function ExpensesPage() {
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Create form state
   const [mode, setMode] = useState("recurring");
   const [formData, setFormData] = useState(recurringDefaults);
 
-  // Edit and Delete dialog states
   const [editOpen, setEditOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [editData, setEditData] = useState({});

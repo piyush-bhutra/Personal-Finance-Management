@@ -1,10 +1,5 @@
 const mongoose = require('mongoose');
 
-/**
- * ExpensePlan — the template / definition of an expense.
- * For recurring expenses, ExpenseEntry records are the actual ledger.
- * For one-time expenses, a single ExpenseEntry is created.
- */
 const expensePlanSchema = mongoose.Schema(
     {
         user: {
@@ -22,27 +17,24 @@ const expensePlanSchema = mongoose.Schema(
             type: String,
             required: [true, 'Please add a category'],
         },
-        // For recurring expenses
         monthlyAmount: {
             type: Number,
         },
         startDate: {
-            type: Date, // The first month this expense began
+            type: Date,
         },
-        // For one-time expenses
         amount: {
             type: Number,
         },
         date: {
             type: Date,
         },
-        // Shared
         description: {
             type: String,
         },
         isActive: {
             type: Boolean,
-            default: true, // false means soft-deleted (trash)
+            default: true,
         },
         status: {
             type: String,

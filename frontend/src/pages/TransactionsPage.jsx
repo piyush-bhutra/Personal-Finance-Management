@@ -55,7 +55,6 @@ const TransactionsPage = () => {
       }
     };
 
-    // Debounce API calls when filters change
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }

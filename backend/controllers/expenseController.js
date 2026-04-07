@@ -9,12 +9,10 @@ const backfillExpenseEntries = async (plan) => {
     const today = new Date();
     const currentMonthStart = startOfMonth(today);
 
-    // ── GUARD: skip if already backfilled this calendar month ──────────────
     if (plan.lastBackfilledAt && startOfMonth(plan.lastBackfilledAt) >= currentMonthStart) {
         return;
     }
 
-    // Get the most recent active entry
     const latestEntry = await ExpenseEntry.findOne({ plan: plan._id, isActive: true }).sort({ date: -1 });
 
     let startDateToUse = plan.startDate;
@@ -54,16 +52,9 @@ const backfillExpenseEntries = async (plan) => {
         await ExpenseEntry.insertMany(entriesToInsert);
     }
 
-    // ── Stamp the plan so we skip backfill for the rest of this month ───────
     await plan.updateOne({ lastBackfilledAt: today });
 };
 
-/* ─────────────────────────────────────────────────────────────
-   GET /api/expenses
-   Returns all active expense plans for the user, with their entries.
-   Query params (optional): fromDate, toDate — ISO date strings.
-   Defaults to current month when neither is supplied.
-───────────────────────────────────────────────────────────── */
 const getExpenses = asyncHandler(async (req, res) => {
     const plans = await ExpensePlan.find({ user: req.user.id, isActive: true });
 
@@ -73,7 +64,6 @@ const getExpenses = asyncHandler(async (req, res) => {
         }
     }));
 
-    // Build date filter — default to current month
     const now = new Date();
     const defaultFrom = startOfMonth(now);
     const defaultTo = new Date(defaultFrom);
@@ -111,10 +101,6 @@ const getExpenses = asyncHandler(async (req, res) => {
     res.status(200).json(results);
 });
 
-/* ─────────────────────────────────────────────────────────────
-   POST /api/expenses
-   Creates a new expense plan and backfills its entries.
-───────────────────────────────────────────────────────────── */
 const createExpense = asyncHandler(async (req, res) => {
     const { expenseMode, category, monthlyAmount, startDate, amount, date, description } = req.body;
 
@@ -138,7 +124,6 @@ const createExpense = asyncHandler(async (req, res) => {
             description,
         });
 
-        // Backfill one entry per month from startDate to today
         const today = new Date();
         const months = monthsBetween(startDate, today);
         const entries = months.map((monthDate) => ({
@@ -154,7 +139,6 @@ const createExpense = asyncHandler(async (req, res) => {
         const totalAmount = allEntries.reduce((acc, entry) => acc + entry.amount, 0);
 
         res.status(201).json({ ...plan.toObject(), entries: allEntries, totalAmount });
-
     } else if (expenseMode === 'one-time') {
         if (!amount || !date) {
             res.status(400);
@@ -185,10 +169,6 @@ const createExpense = asyncHandler(async (req, res) => {
     }
 });
 
-/* ─────────────────────────────────────────────────────────────
-   PUT /api/expenses/:id
-   Updates an expense plan and its future/current entries.
-───────────────────────────────────────────────────────────── */
 const updateExpense = asyncHandler(async (req, res) => {
     const plan = await ExpensePlan.findById(req.params.id);
     if (!plan) { res.status(404); throw new Error('Expense not found'); }
@@ -202,7 +182,6 @@ const updateExpense = asyncHandler(async (req, res) => {
 
         const cutoff = startOfMonth(new Date(fromDate));
 
-        // Deactivate entries from cutoff forward
         await ExpenseEntry.updateMany(
             { plan: plan._id, date: { $gte: cutoff }, isActive: true },
             { $set: { isActive: false } }
@@ -234,7 +213,6 @@ const updateExpense = asyncHandler(async (req, res) => {
         const totalAmount = entries.reduce((acc, entry) => acc + entry.amount, 0);
 
         res.status(200).json({ ...updatedPlan.toObject(), entries, totalAmount });
-
     } else {
         const updatedPlan = await ExpensePlan.findByIdAndUpdate(
             plan._id,
@@ -261,10 +239,6 @@ const updateExpense = asyncHandler(async (req, res) => {
     }
 });
 
-/* ─────────────────────────────────────────────────────────────
-   DELETE /api/expenses/:id
-   Soft deletes or prunes expenses based on date.
-───────────────────────────────────────────────────────────── */
 const deleteExpense = asyncHandler(async (req, res) => {
     const plan = await ExpensePlan.findById(req.params.id);
     if (!plan) { res.status(404); throw new Error('Expense not found'); }
@@ -295,10 +269,6 @@ const deleteExpense = asyncHandler(async (req, res) => {
     }
 });
 
-/* ─────────────────────────────────────────────────────────────
-   PUT /api/expenses/:id/stop
-   Stops a recurring expense.
-───────────────────────────────────────────────────────────── */
 const stopExpense = asyncHandler(async (req, res) => {
     const plan = await ExpensePlan.findById(req.params.id);
     if (!plan) { res.status(404); throw new Error('Expense not found'); }

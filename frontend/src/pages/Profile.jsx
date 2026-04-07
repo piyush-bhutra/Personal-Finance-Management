@@ -68,7 +68,6 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
 
-  // Editing state
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", email: "" });
@@ -82,7 +81,6 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    // 1. Get user identity from LocalStorage
     const userStr = localStorage.getItem("user");
     if (userStr) {
       try {
@@ -94,7 +92,6 @@ const ProfilePage = () => {
       }
     }
 
-    // 2. Fetch lightweight snapshot data
     const fetchSnapshot = async () => {
       try {
         setLoading(true);
@@ -133,18 +130,16 @@ const ProfilePage = () => {
 
   const handleEditChange = (e) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
-    setEditError(""); // clear error on type
+    setEditError("");
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditError("");
-    // Restore original values
     if (user) setEditForm({ name: user.name, email: user.email });
   };
 
   const handleSaveProfile = async () => {
-    // Validation
     if (!editForm.name || editForm.name.length < 2) {
       setEditError("Name must be at least 2 characters.");
       return;
@@ -159,7 +154,6 @@ const ProfilePage = () => {
       setIsSaving(true);
       setEditError("");
 
-      // Only send what changed, or just send both
       const updatedUser = await authService.updateProfile({
         name: editForm.name,
         email: editForm.email,
@@ -188,7 +182,6 @@ const ProfilePage = () => {
     );
   }
 
-  // Formatting Member Since (Month + Year only)
   const memberSinceStr = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-IN", {
       year: "numeric",

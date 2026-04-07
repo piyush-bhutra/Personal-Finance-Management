@@ -24,9 +24,7 @@ const deleteBudget = async (budgetId) => {
   return response.data;
 };
 
-// Updated to accept query params
 const getRecentTransactions = async (params = {}) => {
-  // params can be { limit, type, sort, order, from, to }
   const response = await client.get(API_URL + "transactions", {
     params,
   });

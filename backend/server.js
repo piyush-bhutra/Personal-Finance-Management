@@ -20,16 +20,13 @@ app.get('/', (req, res) => {
     res.status(200).json({ message: 'Welcome to the Support Desk API' });
 });
 
-// Routes
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
-// Central error handler (must be after routes)
 app.use(errorHandler);
 
-// Only listen if running directly (not imported as a module)
 if (require.main === module) {
     app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 }
